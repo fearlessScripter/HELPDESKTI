@@ -1,13 +1,11 @@
 <?php
 
 namespace App\Controllers;
-use App\Models\UsuarioModel;
 
 class Auth extends BaseController
 {
     public function index()
     {
-        // Si ya hay sesión, redirigir al dashboard
         if (session()->get('isLoggedIn')) {
             return redirect()->to('/dashboard');
         }
@@ -17,25 +15,21 @@ class Auth extends BaseController
     public function login()
     {
         $session = session();
-        $model = new UsuarioModel();
-
         $correo = $this->request->getPost('correo');
         $password = $this->request->getPost('password');
 
-        $usuario = $model->validarLogin($correo, $password);
-
-        if ($usuario) {
-            // Guardar datos en la sesión
+        // MODO PRUEBA: Validación sin base de datos
+        if ($correo === 'admin@empresa.cl' && $password === '123456') {
             $sesionData = [
-                'id_usuario'      => $usuario['id_usuario'],
-                'nombre_completo' => $usuario['nombre_completo'],
-                'rol'             => $usuario['rol'],
+                'id_usuario'      => 1,
+                'nombre_completo' => 'Carlos Ramos (Prueba de Vista)',
+                'rol'             => 'Administrador', // Puedes cambiar esto a 'Solicitante' o 'Técnico' para probar los menús
                 'isLoggedIn'      => true
             ];
             $session->set($sesionData);
             return redirect()->to('/dashboard');
         } else {
-            $session->setFlashdata('error', 'Correo o contraseña incorrectos, o usuario inactivo.');
+            $session->setFlashdata('error', 'Credenciales de prueba: admin@empresa.cl / 123456');
             return redirect()->to('/auth');
         }
     }
