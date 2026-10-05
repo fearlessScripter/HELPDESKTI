@@ -40,7 +40,7 @@
                 <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
                 <input type="text" class="form-control" placeholder="Buscar por nombre o correo...">
             </div>
-            <button class="btn btn-primary fw-bold" onclick="alert('Simulación: Modal para crear nuevo usuario')">
+            <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#nuevoUsuarioModal">
                 <i class="bi bi-person-plus me-1"></i> Nuevo Usuario
             </button>
         </div>
@@ -65,7 +65,7 @@
                         <td>Gerencia TI</td>
                         <td class="text-center"><span class="badge bg-success">Activo</span></td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarUsuarioModal"><i class="bi bi-pencil"></i></button>
                             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
@@ -76,7 +76,7 @@
                         <td>Soporte Nivel 2</td>
                         <td class="text-center"><span class="badge bg-success">Activo</span></td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarUsuarioModal"><i class="bi bi-pencil"></i></button>
                             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
@@ -87,7 +87,7 @@
                         <td>Recursos Humanos</td>
                         <td class="text-center"><span class="badge bg-success">Activo</span></td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarUsuarioModal"><i class="bi bi-pencil"></i></button>
                             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
@@ -98,7 +98,7 @@
                         <td>Comercial</td>
                         <td class="text-center"><span class="badge bg-secondary">Inactivo</span></td>
                         <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarUsuarioModal"><i class="bi bi-pencil"></i></button>
                             <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
                         </td>
                     </tr>
@@ -108,6 +108,92 @@
     </div>
 </div>
 
+<!-- Modal Editar Usuario -->
+<div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="editarUsuarioModalLabel">Modificar Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editarUsuarioForm" onsubmit="alert('Simulación: Usuario actualizado exitosamente.'); event.preventDefault(); $('#editarUsuarioModal').modal('hide');">
+                    <div class="mb-3">
+                        <label for="editNombre" class="form-label fw-semibold">Nombre Completo</label>
+                        <input type="text" class="form-control" id="editNombre" value="Usuario de Ejemplo" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRol" class="form-label fw-semibold">Rol del Sistema <span class="text-danger">*</span></label>
+                        <select class="form-select" id="editRol" required>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Técnico">Técnico</option>
+                            <option selected value="Solicitante">Solicitante</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="editEstado" class="form-label fw-semibold">Estado <span class="text-danger">*</span></label>
+                        <select class="form-select" id="editEstado" required>
+                            <option selected value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Nuevo Usuario -->
+<div class="modal fade" id="nuevoUsuarioModal" tabindex="-1" aria-labelledby="nuevoUsuarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="nuevoUsuarioModalLabel">Registrar Nuevo Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="nuevoUsuarioForm" onsubmit="alert('Simulación: Nuevo usuario registrado exitosamente.'); event.preventDefault(); $('#nuevoUsuarioModal').modal('hide');">
+                    <div class="mb-3">
+                        <label for="nuevoNombre" class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="nuevoNombre" placeholder="Ej: Juan Pérez" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevoCorreo" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="nuevoCorreo" placeholder="ejemplo@empresa.cl" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevaClave" class="form-label fw-semibold">Contraseña Inicial <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="nuevaClave" placeholder="Asigne una contraseña temporal" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nuevoRol" class="form-label fw-semibold">Rol del Sistema <span class="text-danger">*</span></label>
+                        <select class="form-select" id="nuevoRol" required>
+                            <option value="" selected disabled>Seleccione un rol...</option>
+                            <option value="Administrador">Administrador</option>
+                            <option value="Técnico">Técnico</option>
+                            <option value="Solicitante">Solicitante</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="nuevoArea" class="form-label fw-semibold">Área / Departamento</label>
+                        <input type="text" class="form-control" id="nuevoArea" placeholder="Ej: Recursos Humanos, Soporte TI...">
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary fw-bold">Crear Usuario</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Make sure jQuery is available for the simulation if needed, or stick to vanilla alert -->
 </body>
 </html>

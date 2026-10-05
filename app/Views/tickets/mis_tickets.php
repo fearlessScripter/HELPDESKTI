@@ -344,13 +344,17 @@
                     <tr>
 
                         <th>ID Ticket</th>
-
+                        <?php if (isset($rol) && $rol === 'Técnico'): ?>
+                        <th>Solicitante</th>
                         <th>Asunto</th>
-
-                        <th>Fecha</th>
-
+                        <th>Prioridad (SLA)</th>
                         <th>Estado</th>
-
+                        <th>Vencimiento SLA</th>
+                        <?php else: ?>
+                        <th>Asunto</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <?php endif; ?>
                         <th class="text-center">Acción</th>
 
                     </tr>
@@ -362,12 +366,17 @@
                     <tr>
 
                         <td class="fw-bold">#TK-1050</td>
-
+                        <?php if (isset($rol) && $rol === 'Técnico'): ?>
+                        <td>Ana Usuario</td>
                         <td>No enciende el computador</td>
-
-                        <td>04/10/2026</td>
-
+                        <td><span class="badge bg-danger">Alta (2h)</span></td>
                         <td><span class="badge bg-warning text-dark">En Proceso</span></td>
+                        <td><span class="text-danger fw-bold"><i class="bi bi-clock-history"></i> Quedan 30 min</span></td>
+                        <?php else: ?>
+                        <td>No enciende el computador</td>
+                        <td>04/10/2026</td>
+                        <td><span class="badge bg-warning text-dark">En Proceso</span></td>
+                        <?php endif; ?>
 
                         <td class="text-center"><a href="<?= base_url('/tickets/detalles') ?>" class="btn btn-sm btn-outline-secondary">Ver Detalles</a></td>
 
@@ -376,12 +385,17 @@
                     <tr>
 
                         <td class="fw-bold">#TK-1021</td>
-
+                        <?php if (isset($rol) && $rol === 'Técnico'): ?>
+                        <td>Carlos Ramos</td>
                         <td>Fallo en conexión WiFi</td>
-
-                        <td>01/10/2026</td>
-
+                        <td><span class="badge bg-info text-dark">Baja (24h)</span></td>
                         <td><span class="badge bg-success">Resuelto</span></td>
+                        <td><span class="text-success"><i class="bi bi-clock"></i> Resuelto a tiempo</span></td>
+                        <?php else: ?>
+                        <td>Fallo en conexión WiFi</td>
+                        <td>01/10/2026</td>
+                        <td><span class="badge bg-success">Resuelto</span></td>
+                        <?php endif; ?>
                         <td class="text-center">
                             <a href="<?= base_url('/tickets/detalles') ?>?id=TK-1021" class="btn btn-sm btn-outline-secondary">Ver Detalles</a>
                             <?php if ($rol === 'Solicitante'): ?>

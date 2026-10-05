@@ -25,7 +25,7 @@ $activeTab = $activeTab ?? 'todos';
 
     <!-- Todos los roles pueden ver "Mis tickets", o quizás para Solicitante sea la única pestaña -->
     <a href="<?= base_url('/tickets/mis-tickets') ?>" class="<?= $activeTab === 'mis_tickets' ? 'active' : '' ?>">
-        Mis tickets
+        <?= $rol === 'Técnico' ? 'Asignados' : 'Mis tickets' ?>
     </a>
 
 </div>

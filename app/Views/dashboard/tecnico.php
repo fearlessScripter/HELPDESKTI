@@ -107,8 +107,8 @@
                         <td>Ana Usuario</td>
                         <td>Error al abrir ERP</td>
                         <td><span class="badge bg-danger">Alta (2h)</span></td>
-                        <td><span class="badge bg-danger">Pendiente</span></td>
-                        <td class="text-center"><a href="<?= base_url('/tickets/asignados') ?>" class="btn btn-sm btn-primary fw-bold">Ir a Tickets</a></td>
+                        <td><span class="badge bg-warning text-dark">En Proceso</span></td>
+                        <td class="text-center"><a href="<?= base_url('/tickets/mis-tickets') ?>" class="btn btn-sm btn-primary fw-bold">Ir a Tickets</a></td>
                     </tr>
                     <tr>
                         <td class="fw-bold">#TK-1048</td>
@@ -116,7 +116,7 @@
                         <td>Configuración de impresora</td>
                         <td><span class="badge bg-info text-dark">Baja (24h)</span></td>
                         <td><span class="badge bg-warning text-dark">En Proceso</span></td>
-                        <td class="text-center"><a href="<?= base_url('/tickets/asignados') ?>" class="btn btn-sm btn-primary fw-bold">Ir a Tickets</a></td>
+                        <td class="text-center"><a href="<?= base_url('/tickets/mis-tickets') ?>" class="btn btn-sm btn-primary fw-bold">Ir a Tickets</a></td>
                     </tr>
                 </tbody>
             </table>
