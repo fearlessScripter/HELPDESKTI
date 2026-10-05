@@ -28,9 +28,95 @@
 <?= view('layout/sidebar', ['active' => 'reportes']) ?>
 
 <div class="main-content">
-    <?= view('layout/topbar', ['pageTitle' => 'Métricas y Reportes']) ?>
+    <?= view('layout/topbar', [
+        'pageTitle' => 'Reportes y Rendimiento',
+        'topbarButton' => '<button class="btn btn-primary"><i class="bi bi-file-earmark-pdf"></i> Exportar a PDF</button>'
+    ]) ?>
 
     <div class="content">
+        <!-- Barra de Filtros -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <form class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label text-muted fw-bold">Rango de Fechas</label>
+                                <input type="date" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label text-muted fw-bold">Área Operativa</label>
+                                <select class="form-select">
+                                    <option selected>Todas las áreas...</option>
+                                    <option>Sistemas ERP</option>
+                                    <option>Redes y Conectividad</option>
+                                    <option>Soporte TI</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label text-muted fw-bold">Técnico Responsable</label>
+                                <select class="form-select">
+                                    <option selected>Todos los técnicos...</option>
+                                    <option>Luis Técnico</option>
+                                    <option>María Soporte</option>
+                                    <option>Jorge Redes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex gap-2">
+                                <button type="reset" class="btn btn-light w-50">Restablecer</button>
+                                <button type="button" class="btn btn-primary w-50">Aplicar Filtros</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indicadores OLA -->
+        <h5 class="fw-bold mb-3">Indicadores OLA (Operativa Interna)</h5>
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-stopwatch fs-4 text-primary"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted fw-bold mb-1">Tiempo Medio de Respuesta (MTTR)</h6>
+                            <h3 class="fw-bold mb-0">1.5h</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="bg-success bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-check-circle fs-4 text-success"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted fw-bold mb-1">Tiempo Medio de Resolución</h6>
+                            <h3 class="fw-bold mb-0">4.2h</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded">
+                            <i class="bi bi-arrow-up-right-circle fs-4 text-warning"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted fw-bold mb-1">Tickets Escalados a Nivel 3</h6>
+                            <h3 class="fw-bold mb-0">15</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="fw-bold mb-3">Métricas Generales</h5>
         <div class="row g-4 mb-4">
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100">
@@ -126,6 +212,52 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Auditoría de Incumplimientos -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="fw-bold mb-4">Auditoría de Incumplimientos (SLA / OLA)</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="text-muted">
+                                    <tr>
+                                        <th>ID Ticket</th>
+                                        <th>Técnico Responsable</th>
+                                        <th>Horas de Retraso</th>
+                                        <th>Categoría</th>
+                                        <th>Tipo de Brecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold">#TCK-1023</td>
+                                        <td>Luis Técnico</td>
+                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+3.5 hrs</span></td>
+                                        <td>Sistemas ERP</td>
+                                        <td><span class="badge text-bg-secondary">SLA</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">#TCK-1045</td>
+                                        <td>María Soporte</td>
+                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+1.2 hrs</span></td>
+                                        <td>Soporte TI</td>
+                                        <td><span class="badge text-bg-info text-white">OLA</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">#TCK-1089</td>
+                                        <td>Jorge Redes</td>
+                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+4.0 hrs</span></td>
+                                        <td>Redes y Conectividad</td>
+                                        <td><span class="badge text-bg-secondary">SLA</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

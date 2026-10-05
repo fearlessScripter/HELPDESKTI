@@ -11,6 +11,9 @@ $pageTitle = $pageTitle ?? 'Inicio';
     </div>
 
     <div class="d-flex align-items-center gap-3">
+        <?php if(isset($topbarButton)): ?>
+            <?= $topbarButton ?>
+        <?php endif; ?>
 
         <!-- Notificaciones -->
         <button type="button" class="btn btn-light position-relative">
