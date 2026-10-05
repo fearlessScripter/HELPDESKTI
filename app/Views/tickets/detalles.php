@@ -74,6 +74,17 @@
                                 <li class="mb-2"><strong>Prioridad:</strong> <span class="badge bg-danger">Alta (2h SLA)</span></li>
                                 <li class="mb-2"><strong>Asignado a:</strong> <?= esc($nombre) ?></li>
                             </ul>
+                            
+                            <div class="mt-4 pt-3 border-top">
+                                <h6 class="fw-bold mb-2">Control de SLA</h6>
+                                <div class="d-flex justify-content-between mb-1 small text-muted">
+                                    <span>Tiempo restante: 30 min de 2 hrs</span>
+                                    <span>75% consumido</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -85,6 +96,7 @@
                         </div>
                         <div class="card-body p-4">
                             <form action="#" method="get" onsubmit="alert('Simulación: Solución registrada. El ticket cambiará a estado Resuelto.'); return false;">
+                                <small class="text-muted mb-3 d-block"><i class="bi bi-info-circle"></i> El tiempo de resolución (OLA) se calculará y registrará automáticamente utilizando las marcas de tiempo del sistema al enviar este formulario.</small>
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Detalle la solución aplicada <span class="text-danger">*</span></label>
                                     <textarea class="form-control" rows="4" placeholder="Ej: Se reemplazó el cable de poder y se reajustó la memoria RAM..." required></textarea>

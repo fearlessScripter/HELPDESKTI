@@ -25,11 +25,19 @@ $pageTitle = $pageTitle ?? 'Inicio';
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 350px;">
                 <li><h6 class="dropdown-header fw-bold">Notificaciones Recientes</h6></li>
+                <?php if (isset($rol) && $rol === 'Técnico'): ?>
+                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> RIESGO SLA: Ticket #TK-1045 vence en 30 min.</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-info-circle-fill text-info me-2"></i> NUEVO TICKET: Se te asignó el ticket #TK-1090.</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-arrow-left-right text-primary me-2"></i> REASIGNACIÓN: Ticket #TK-1021 transferido a tu cola (SLA Restante: 45 min).</a></li>
+                <?php else: ?>
                 <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> ALERTA SLA: Ticket #TCK-1023 superó el tiempo máximo de resolución (+3.5 hrs).</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-info-circle-fill text-info me-2"></i> NUEVO TICKET: Se asignó el ticket #TCK-1090 (Prioridad: Alta) a tu cola operativa.</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-check-circle-fill text-success me-2"></i> TICKET CERRADO: El solicitante confirmó la solución del ticket #TCK-1042.</a></li>
+                <?php endif; ?>
             </ul>
         </div>
 

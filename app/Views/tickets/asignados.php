@@ -351,6 +351,7 @@
                         <th>Prioridad (SLA)</th>
 
                         <th>Estado</th>
+                        <th>Vencimiento SLA</th>
 
                         <th class="text-center">Acción</th>
 
@@ -371,6 +372,7 @@
                         <td><span class="badge bg-danger">Alta (2h)</span></td>
 
                         <td><span class="badge bg-danger">Pendiente</span></td>
+                        <td><span class="text-danger fw-bold"><i class="bi bi-clock-history"></i> Quedan 30 min</span></td>
 
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
@@ -396,6 +398,7 @@
                         <td><span class="badge bg-info text-dark">Baja (24h)</span></td>
 
                         <td><span class="badge bg-warning text-dark">En Proceso</span></td>
+                        <td><span class="text-success"><i class="bi bi-clock"></i> Quedan 22 hrs</span></td>
 
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-2">
