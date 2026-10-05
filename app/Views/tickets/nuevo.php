@@ -148,6 +148,27 @@
                                     <input type="text" class="form-control" placeholder="Ej: No me enciende el computador o no tengo internet" required>
                                 </div>
 
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Nivel de Impacto (Alcance del problema) <span class="text-danger">*</span></label>
+                                        <select class="form-select" required>
+                                            <option value="" selected disabled>Selecciona el impacto...</option>
+                                            <option value="bajo">Bajo (Afecta solo a mí)</option>
+                                            <option value="medio">Medio (Afecta a mi departamento)</option>
+                                            <option value="alto">Alto (Afecta a toda la empresa)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Nivel de Urgencia (Rapidez necesaria) <span class="text-danger">*</span></label>
+                                        <select class="form-select" required>
+                                            <option value="" selected disabled>Selecciona la urgencia...</option>
+                                            <option value="baja">Baja (Puedo seguir trabajando)</option>
+                                            <option value="media">Media (Dificulta mi trabajo)</option>
+                                            <option value="alta">Alta (Trabajo totalmente detenido)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 <div class="mb-4">
                                     <label class="form-label fw-bold">Descripción detallada del problema <span class="text-danger">*</span></label>
                                     <textarea class="form-control" rows="5" placeholder="Describe qué estabas haciendo y qué error apareció en pantalla..." required></textarea>

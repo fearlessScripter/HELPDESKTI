@@ -383,11 +383,11 @@
 
                         <td><span class="badge bg-success">Resuelto</span></td>
                         <td class="text-center">
-                            <a href="<?= base_url('/tickets/detalles') ?>" class="btn btn-sm btn-outline-secondary">Ver Detalles</a>
+                            <a href="<?= base_url('/tickets/detalles') ?>?id=TK-1021" class="btn btn-sm btn-outline-secondary">Ver Detalles</a>
                             <?php if ($rol === 'Solicitante'): ?>
-                            <button class="btn btn-sm btn-success ms-1" onclick="alert('Simulación: Confirmar solución y cerrar ticket.')">
+                            <a href="<?= base_url('/tickets/detalles') ?>?id=TK-1021" class="btn btn-sm btn-success ms-1">
                                 <i class="bi bi-check2-circle"></i> Cerrar
-                            </button>
+                            </a>
                             <?php endif; ?>
                         </td>
 

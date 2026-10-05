@@ -50,7 +50,11 @@
                         <div class="card-header bg-white pt-4 pb-3 border-bottom text-start">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <h4 class="fw-bold mb-0">No enciende el computador</h4>
+                                <?php if (isset($_GET['id']) && $_GET['id'] === 'TK-1021'): ?>
+                                <span class="badge bg-success fs-6">Resuelto</span>
+                                <?php else: ?>
                                 <span class="badge bg-warning text-dark fs-6">En Proceso</span>
+                                <?php endif; ?>
                             </div>
                             <p class="text-muted mb-0"><i class="bi bi-clock"></i> Creado el 04/10/2026 por <strong>Ana Usuario</strong></p>
                         </div>
@@ -72,9 +76,10 @@
                                 <li class="mb-2"><strong>ID del Ticket:</strong> <?= esc($ticket_id ?? '#TK-1050') ?></li>
                                 <li class="mb-2"><strong>Área Afectada:</strong> Soporte TI (Equipos y Hardware)</li>
                                 <li class="mb-2"><strong>Prioridad:</strong> <span class="badge bg-danger">Alta (2h SLA)</span></li>
-                                <li class="mb-2"><strong>Asignado a:</strong> <?= esc($nombre) ?></li>
+                                <li class="mb-2"><strong>Asignado a:</strong> Luis Técnico</li>
                             </ul>
                             
+                            <?php if ($rol === 'Técnico' || $rol === 'Administrador'): ?>
                             <div class="mt-4 pt-3 border-top">
                                 <h6 class="fw-bold mb-2">Control de SLA</h6>
                                 <div class="d-flex justify-content-between mb-1 small text-muted">
@@ -85,6 +90,7 @@
                                     <div class="progress-bar bg-warning" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
                                 </div>
                             </div>
+                            <?php endif; ?>
                         </div>
                     </div>
 
@@ -111,11 +117,30 @@
                     </div>
                     <?php endif; ?>
 
-                    <!-- Formulario de Solución (Para el Admin o Solicitante) -->
+                    <!-- Estado de la Solución (Para el Admin o Solicitante) -->
                     <?php if ($rol !== 'Técnico'): ?>
-                        <div class="alert alert-info border-0 shadow-sm">
-                            <i class="bi bi-info-circle-fill me-2"></i> Solo el técnico asignado puede registrar la solución.
-                        </div>
+                        <?php if (isset($_GET['id']) && $_GET['id'] === 'TK-1021'): ?>
+                            <div class="card shadow-sm border-0">
+                                <div class="card-header bg-white pt-3 pb-2 border-bottom text-start">
+                                    <h6 class="fw-bold mb-0 text-success"><i class="bi bi-check-circle-fill me-2"></i>Validación de Solución</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="alert alert-success border-0 mb-4 shadow-sm">
+                                        <h6 class="fw-bold mb-2">Solución aplicada por el técnico:</h6>
+                                        <p class="mb-0 small">Se reinició el router principal y se actualizó el firmware para restablecer la conexión WiFi de tu área.</p>
+                                    </div>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-success fw-bold" onclick="alert('Simulación: Ticket cerrado exitosamente.')">
+                                            <i class="bi bi-check2-circle me-1"></i> Confirmar y cerrar ticket
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-info border-0 shadow-sm">
+                                <i class="bi bi-info-circle-fill me-2"></i> El ticket está en proceso de atención por el equipo técnico.
+                            </div>
+                        <?php endif; ?>
                     <?php endif; ?>
 
                 </div>
