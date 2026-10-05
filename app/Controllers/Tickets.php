@@ -4,24 +4,46 @@ namespace App\Controllers;
 
 class Tickets extends BaseController
 {
+    private function getSessionData()
+    {
+        $session = session();
+
+        // Si no está logueado, redirigir al login
+        if (!$session->get('isLoggedIn')) {
+            return null;
+        }
+
+        return [
+            'nombre' => $session->get('nombre_completo'),
+            'rol'    => $session->get('rol')
+        ];
+    }
+
     public function nuevo()
     {
-        // Solo cargamos la vista sin guardar en base de datos
-        return view('tickets/nuevo');
+        $data = $this->getSessionData();
+        if (!$data) return redirect()->to('/auth');
+        return view('tickets/nuevo', $data);
     }
 
     public function cola()
     {
-        return view('tickets/cola');
+        $data = $this->getSessionData();
+        if (!$data) return redirect()->to('/auth');
+        return view('tickets/cola', $data);
     }
 
     public function misTickets()
     {
-        return view('tickets/mis_tickets');
+        $data = $this->getSessionData();
+        if (!$data) return redirect()->to('/auth');
+        return view('tickets/mis_tickets', $data);
     }
 
     public function asignados()
     {
-        return view('tickets/asignados');
+        $data = $this->getSessionData();
+        if (!$data) return redirect()->to('/auth');
+        return view('tickets/asignados', $data);
     }
 }

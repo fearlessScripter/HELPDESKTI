@@ -271,22 +271,14 @@
 
     <a href="<?= base_url('/dashboard') ?>" class="active">
 
-        <i class="bi bi-house"></i>
-
-        <span>Inicio</span>
-
-    </a>
-
-
-    <a href="<?= base_url('/tickets/cola') ?>">
-
-        <i class="bi bi-ticket-perforated"></i>
+        <i class="bi bi-ticket-detailed"></i>
 
         <span>Tickets</span>
 
-        <span class="ticket-count">24</span>
-
     </a>
+
+
+
 
 
     <a href="<?= base_url('/usuarios') ?>">
@@ -451,25 +443,25 @@
 
         <div class="ticket-tabs">
 
-            <a href="#" class="active">
+            <a href="<?= base_url('/dashboard') ?>" class="active">
 
                 Todos
 
             </a>
 
-            <a href="#">
+            <a href="<?= base_url('/tickets/asignados') ?>">
 
                 Asignados
 
             </a>
 
-            <a href="#">
+            <a href="<?= base_url('/tickets/cola') ?>">
 
                 Sin asignar
 
             </a>
 
-            <a href="#">
+            <a href="<?= base_url('/tickets/mis-tickets') ?>">
 
                 Mis tickets
 
@@ -521,21 +513,21 @@
 
         <div class="ticket-table">
 
-
-            <table class="table table-hover">
-
+            <table class="table table-hover align-middle mb-0">
 
                 <thead class="table-light">
 
                     <tr>
 
-                        <th>#</th>
+                        <th>ID Ticket</th>
 
-                        <th>Asunto</th>
+                        <th>Solicitante</th>
 
-                        <th>Prioridad</th>
+                        <th>Área Afectada</th>
 
-                        <th>Estado</th>
+                        <th>Prioridad (SLA)</th>
+
+                        <th class="text-center">Acción</th>
 
                     </tr>
 
@@ -545,144 +537,67 @@
                 <tbody>
 
 
-                    <!-- Ticket 123 -->
+                    <!-- Ticket TK-1042 -->
 
                     <tr>
 
-                        <td>
-                            <strong>#123</strong>
+                        <td class="fw-bold">
+                            #TK-1042
                         </td>
 
                         <td>
-                            Problema de conexión a la red
+                            Alejandro Silva
+                        </td>
+
+                        <td>
+                            Redes y Conectividad
                         </td>
 
                         <td>
 
-                            <span class="priority-high">
+                            <span class="badge bg-danger">
 
-                                Alta
+                                Alta (2h)
 
                             </span>
 
                         </td>
 
-                        <td>
-
-                            <span class="status status-pending">
-
-                                Pendiente
-
-                            </span>
-
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-success fw-bold" onclick="alert('Simulación: Abriendo modal para asignar técnico')">Asignar Técnico</button>
                         </td>
 
                     </tr>
 
 
-
-                    <!-- Ticket 122 -->
-
-                    <tr>
-
-                        <td>
-                            <strong>#122</strong>
-                        </td>
-
-                        <td>
-                            Error en impresora
-                        </td>
-
-                        <td>
-
-                            <span class="priority-medium">
-
-                                Media
-
-                            </span>
-
-                        </td>
-
-                        <td>
-
-                            <span class="status status-process">
-
-                                En proceso
-
-                            </span>
-
-                        </td>
-
-                    </tr>
-
-
-
-                    <!-- Ticket 121 -->
+                    <!-- Ticket TK-1043 -->
 
                     <tr>
 
-                        <td>
-                            <strong>#121</strong>
+                        <td class="fw-bold">
+                            #TK-1043
                         </td>
 
                         <td>
-                            Consulta sobre sistema interno
+                            Beatriz Fuentes
+                        </td>
+
+                        <td>
+                            Sistemas ERP
                         </td>
 
                         <td>
 
-                            <span class="priority-low">
+                            <span class="badge bg-warning text-dark">
 
-                                Baja
+                                Media (4h)
 
                             </span>
 
                         </td>
 
-                        <td>
-
-                            <span class="status status-resolved">
-
-                                Resuelto
-
-                            </span>
-
-                        </td>
-
-                    </tr>
-
-
-
-                    <!-- Ticket 120 -->
-
-                    <tr>
-
-                        <td>
-                            <strong>#120</strong>
-                        </td>
-
-                        <td>
-                            Actualización de software
-                        </td>
-
-                        <td>
-
-                            <span class="priority-medium">
-
-                                Media
-
-                            </span>
-
-                        </td>
-
-                        <td>
-
-                            <span class="status status-closed">
-
-                                Cerrado
-
-                            </span>
-
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-success fw-bold" onclick="alert('Simulación: Abriendo modal para asignar técnico')">Asignar Técnico</button>
                         </td>
 
                     </tr>
