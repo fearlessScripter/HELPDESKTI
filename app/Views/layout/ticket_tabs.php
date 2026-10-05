@@ -6,7 +6,7 @@ $activeTab = $activeTab ?? 'todos';
 <div class="ticket-tabs">
 
     <?php if ($rol === 'Administrador'): ?>
-    <a href="<?= base_url('/dashboard') ?>" class="<?= $activeTab === 'todos' ? 'active' : '' ?>">
+    <a href="<?= base_url('/tickets/todos') ?>" class="<?= $activeTab === 'todos' ? 'active' : '' ?>">
         Todos
     </a>
     <?php endif; ?>

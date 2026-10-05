@@ -384,7 +384,7 @@
                         <td><span class="badge bg-success">Resuelto</span></td>
                         <td class="text-center">
                             <a href="<?= base_url('/tickets/detalles') ?>" class="btn btn-sm btn-outline-secondary">Ver Detalles</a>
-                            <?php if ($rol !== 'Técnico'): ?>
+                            <?php if ($rol === 'Solicitante'): ?>
                             <button class="btn btn-sm btn-success ms-1" onclick="alert('Simulación: Confirmar solución y cerrar ticket.')">
                                 <i class="bi bi-check2-circle"></i> Cerrar
                             </button>

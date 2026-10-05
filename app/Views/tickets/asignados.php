@@ -372,7 +372,16 @@
 
                         <td><span class="badge bg-danger">Pendiente</span></td>
 
-                        <td class="text-center"><button class="btn btn-sm btn-primary fw-bold">Atender</button></td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <?php if (isset($rol) && $rol === 'Técnico'): ?>
+                                <button class="btn btn-sm btn-primary fw-bold">Atender</button>
+                                <?php endif; ?>
+                                <?php if (isset($rol) && $rol === 'Administrador'): ?>
+                                <button class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#reasignarModal">Reasignar</button>
+                                <?php endif; ?>
+                            </div>
+                        </td>
 
                     </tr>
 
@@ -388,7 +397,16 @@
 
                         <td><span class="badge bg-warning text-dark">En Proceso</span></td>
 
-                        <td class="text-center"><button class="btn btn-sm btn-primary fw-bold">Atender</button></td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center gap-2">
+                                <?php if (isset($rol) && $rol === 'Técnico'): ?>
+                                <button class="btn btn-sm btn-primary fw-bold">Atender</button>
+                                <?php endif; ?>
+                                <?php if (isset($rol) && $rol === 'Administrador'): ?>
+                                <button class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#reasignarModal">Reasignar</button>
+                                <?php endif; ?>
+                            </div>
+                        </td>
 
                     </tr>
 
@@ -404,6 +422,40 @@
 </div>
 
 
+
+<!-- Modal Reasignar Ticket -->
+<div class="modal fade" id="reasignarModal" tabindex="-1" aria-labelledby="reasignarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="reasignarModalLabel">Reasignar / Escalar Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reasignarForm">
+                    <div class="mb-3">
+                        <label for="tecnicoSelect" class="form-label text-muted fw-bold">Asignar a:</label>
+                        <select class="form-select" id="tecnicoSelect" required>
+                            <option value="" selected disabled>Seleccione un Técnico / Administrador...</option>
+                            <option value="1">Luis Técnico (Técnico N1)</option>
+                            <option value="2">María Soporte (Técnico N2)</option>
+                            <option value="3">Jorge Redes (Especialista Redes)</option>
+                            <option value="4">Admin Principal (Administrador)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="motivoReasignacion" class="form-label text-muted fw-bold">Motivo de Reasignación</label>
+                        <textarea class="form-control" id="motivoReasignacion" rows="3" placeholder="Ej: Requiere escalamiento a nivel 2 por complejidad..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning fw-bold text-dark" onclick="alert('Simulación: Ticket reasignado exitosamente.')" data-bs-dismiss="modal">Confirmar Reasignación</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Bootstrap JS -->
 

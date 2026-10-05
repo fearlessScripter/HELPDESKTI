@@ -26,6 +26,14 @@ class Tickets extends BaseController
         return view('tickets/nuevo', $data);
     }
 
+    public function todos()
+    {
+        $data = $this->getSessionData();
+        if (!$data) return redirect()->to('/auth');
+        if (!in_array($data['rol'], ['Administrador', 'Técnico'])) return redirect()->to('/dashboard');
+        return view('tickets/todos', $data);
+    }
+
     public function cola()
     {
         $data = $this->getSessionData();

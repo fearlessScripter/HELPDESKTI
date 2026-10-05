@@ -12,6 +12,7 @@ $routes->get('/dashboard', 'Dashboard::index');
 $routes->get('/tickets/nuevo', 'Tickets::nuevo');// Crearemos este controlador después
 // Ruta para la Cola de Tickets del Administrador
 $routes->get('/tickets/cola', 'Tickets::cola');
+$routes->get('/tickets/todos', 'Tickets::todos');
 // Rutas de Tickets (Solicitante y Técnico)
 $routes->get('/tickets/mis-tickets', 'Tickets::misTickets');
 $routes->get('/tickets/asignados', 'Tickets::asignados');
