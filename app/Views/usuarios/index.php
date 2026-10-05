@@ -1,502 +1,113 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Tickets - HelpDesk TI</title>
-
-    <!-- Bootstrap -->
+    <title>Usuarios - HelpDesk TI</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
     <style>
-
-        body {
-            background-color: #f5f6f8;
-        }
-
-        /* Sidebar */
-
-        .sidebar {
-            width: 250px;
-            height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            background-color: #212529;
-            color: white;
-            padding: 20px 15px;
-        }
-
-        .sidebar-title {
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 35px;
-            padding-left: 10px;
-        }
-
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            color: #ced4da;
-            text-decoration: none;
-
-            padding: 12px 14px;
-            margin-bottom: 5px;
-
-            border-radius: 8px;
-
-            transition: 0.2s;
-        }
-
-        .sidebar a:hover {
-            background-color: #343a40;
-            color: white;
-        }
-
-        .sidebar a.active {
-            background-color: #0d6efd;
-            color: white;
-        }
-
-        .ticket-count {
-            margin-left: auto;
-            background-color: #dc3545;
-            color: white;
-
-            font-size: 12px;
-
-            padding: 2px 7px;
-            border-radius: 10px;
-        }
-
-
-        /* Contenido */
-
-        .main-content {
-            margin-left: 250px;
-            min-height: 100vh;
-        }
-
-
-        /* Header */
-
-        .topbar {
-            height: 75px;
-
-            background-color: white;
-
-            border-bottom: 1px solid #dee2e6;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            padding: 0 30px;
-        }
-
-        .page-title {
-            font-size: 24px;
-            font-weight: 600;
-        }
-
-
-        /* Usuario */
-
-        .user-button {
-            border: none;
-            background: transparent;
-
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            padding: 5px 10px;
-        }
-
-        .user-button:hover {
-            background-color: #f1f3f5;
-            border-radius: 8px;
-        }
-
-        .user-name {
-            font-weight: 600;
-        }
-
-        .user-role {
-            font-size: 13px;
-            color: #6c757d;
-        }
-
-
-        /* Contenido */
-
-        .content {
-            padding: 30px;
-        }
-
-
-        /* Tabs */
-
-        .ticket-tabs {
-            border-bottom: 1px solid #dee2e6;
-            margin-bottom: 25px;
-        }
-
-        .ticket-tabs a {
-            text-decoration: none;
-            color: #6c757d;
-
-            padding: 12px 18px;
-
-            display: inline-block;
-        }
-
-        .ticket-tabs a:hover {
-            color: #0d6efd;
-        }
-
-        .ticket-tabs a.active {
-            color: #0d6efd;
-
-            border-bottom: 2px solid #0d6efd;
-
-            font-weight: 600;
-        }
-
-
-        /* Tabla */
-
-        .ticket-table {
-            background-color: white;
-
-            border-radius: 10px;
-
-            overflow: hidden;
-
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .ticket-table table {
-            margin-bottom: 0;
-        }
-
-        .ticket-table th {
-            font-size: 13px;
-            color: #6c757d;
-            font-weight: 600;
-        }
-
-        .ticket-table td {
-            vertical-align: middle;
-        }
-
-
-        /* Prioridades */
-
-        .priority-high {
-            color: #dc3545;
-            font-weight: 600;
-        }
-
-        .priority-medium {
-            color: #fd7e14;
-            font-weight: 600;
-        }
-
-        .priority-low {
-            color: #198754;
-            font-weight: 600;
-        }
-
-
-        /* Estados */
-
-        .status {
-            padding: 5px 10px;
-
-            border-radius: 20px;
-
-            font-size: 12px;
-
-            font-weight: 600;
-        }
-
-        .status-pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .status-process {
-            background-color: #cff4fc;
-            color: #055160;
-        }
-
-        .status-resolved {
-            background-color: #d1e7dd;
-            color: #0f5132;
-        }
-
-        .status-closed {
-            background-color: #e2e3e5;
-            color: #41464b;
-        }
-
+        body { background-color: #f5f6f8; }
+        .sidebar { width: 250px; height: 100vh; position: fixed; left: 0; top: 0; background-color: #212529; color: white; padding: 20px 15px; }
+        .sidebar-title { font-size: 22px; font-weight: bold; margin-bottom: 35px; padding-left: 10px; }
+        .sidebar a { display: flex; align-items: center; gap: 12px; color: #ced4da; text-decoration: none; padding: 12px 14px; margin-bottom: 5px; border-radius: 8px; transition: 0.2s; }
+        .sidebar a:hover { background-color: #343a40; color: white; }
+        .sidebar a.active { background-color: #0d6efd; color: white; }
+        .main-content { margin-left: 250px; min-height: 100vh; }
+        .topbar { height: 75px; background-color: white; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
+        .page-title { font-size: 24px; font-weight: 600; }
+        .user-button { border: none; background: transparent; display: flex; align-items: center; gap: 10px; padding: 5px 10px; }
+        .user-button:hover { background-color: #f1f3f5; border-radius: 8px; }
+        .user-name { font-weight: 600; }
+        .user-role { font-size: 13px; color: #6c757d; }
+        .content { padding: 30px; }
+        .ticket-table { background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .ticket-table table { margin-bottom: 0; }
+        .ticket-table th { font-size: 13px; color: #6c757d; font-weight: 600; }
+        .ticket-table td { vertical-align: middle; }
     </style>
-
 </head>
-
-
 <body>
 
-
-<!-- ===================================================== -->
-<!-- SIDEBAR -->
-<!-- ===================================================== -->
-
-<div class="sidebar">
-
-    <div class="sidebar-title">
-        <i class="bi bi-headset"></i>
-        HelpDesk TI
-    </div>
-
-
-    <a href="<?= base_url('/dashboard') ?>">
-
-        <i class="bi bi-ticket-detailed"></i>
-
-        <span>Tickets</span>
-
-    </a>
-
-
-
-
-
-    <a href="<?= base_url('/usuarios') ?>" class="active">
-
-        <i class="bi bi-people"></i>
-
-        <span>Usuarios</span>
-
-    </a>
-
-
-    <a href="<?= base_url('/base-conocimientos') ?>">
-
-        <i class="bi bi-book"></i>
-
-        <span>Base de conocimientos</span>
-
-    </a>
-
-
-    <a href="<?= base_url('/reportes') ?>">
-
-        <i class="bi bi-bar-chart"></i>
-
-        <span>Reportes</span>
-
-    </a>
-
-</div>
-
-
-
-<!-- ===================================================== -->
-<!-- CONTENIDO PRINCIPAL -->
-<!-- ===================================================== -->
+<?= view('layout/sidebar', ['active' => 'usuarios']) ?>
 
 <div class="main-content">
-
-
-    <!-- ================================================= -->
-    <!-- HEADER -->
-    <!-- ================================================= -->
-
-    <div class="topbar">
-
-
-        <div class="page-title">
-            Gestión de Accesos
-        </div>
-
-
-
-        <div class="d-flex align-items-center gap-3">
-
-
-            <!-- Notificaciones -->
-
-            <button
-                type="button"
-                class="btn btn-light position-relative">
-
-                <i class="bi bi-bell fs-5"></i>
-
-                <span
-                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-
-                    3
-
-                </span>
-
-            </button>
-
-
-
-            <!-- Usuario -->
-
-            <div class="dropdown">
-
-                <button
-                    class="user-button dropdown-toggle"
-                    type="button"
-                    data-bs-toggle="dropdown">
-
-
-                    <div class="text-end">
-
-                        <div class="user-name">
-
-                            <?= esc($nombre) ?>
-
-                        </div>
-
-                        <div class="user-role">
-
-                            <?= esc($rol) ?>
-
-                        </div>
-
-                    </div>
-
-
-                    <i class="bi bi-person-circle fs-3"></i>
-
-
-                </button>
-
-
-                <ul class="dropdown-menu dropdown-menu-end">
-
-                    <li>
-                        <span class="dropdown-item-text">
-
-                            <strong><?= esc($nombre) ?></strong>
-
-                            <br>
-
-                            <small class="text-muted">
-                                <?= esc($rol) ?>
-                            </small>
-
-                        </span>
-                    </li>
-
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-
-                    <li>
-
-                        <a
-                            class="dropdown-item text-danger"
-                            href="<?= base_url('/logout') ?>">
-
-                            <i class="bi bi-box-arrow-right"></i>
-
-                            Cerrar sesiÃ³n
-
-                        </a>
-
-                    </li>
-
-                </ul>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- ================================================= -->
-    <!-- CONTENIDO -->
-    <!-- ================================================= -->
+    <?= view('layout/topbar', ['pageTitle' => 'Gestión de Accesos']) ?>
 
     <div class="content">
-<div class="container-fluid p-0">
-<div class="row mb-3">
-    <div class="col">
-        <h2 class="fw-bold">Directorio de Usuarios</h2>
-        <p class="text-muted">Módulo para crear, editar y desactivar usuarios, además de asignarles el rol correspondiente.</p>
-    </div>
-    <div class="col-auto">
-        <button class="btn btn-primary" onclick="alert('Simulación: Abriendo modal de nuevo usuario')">+ Nuevo Usuario</button>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="input-group" style="max-width: 450px;">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" placeholder="Buscar por nombre o correo...">
+            </div>
+            <button class="btn btn-primary fw-bold" onclick="alert('Simulación: Modal para crear nuevo usuario')">
+                <i class="bi bi-person-plus me-1"></i> Nuevo Usuario
+            </button>
+        </div>
+
+        <div class="ticket-table">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Correo Electrónico</th>
+                        <th>Rol del Sistema</th>
+                        <th>Área / Departamento</th>
+                        <th class="text-center">Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-bold">Juan Administrador</td>
+                        <td class="text-muted">admin@empresa.cl</td>
+                        <td><span class="badge bg-dark">Administrador</span></td>
+                        <td>Gerencia TI</td>
+                        <td class="text-center"><span class="badge bg-success">Activo</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Luis Técnico</td>
+                        <td class="text-muted">tecnico@empresa.cl</td>
+                        <td><span class="badge bg-info text-dark">Técnico</span></td>
+                        <td>Soporte Nivel 2</td>
+                        <td class="text-center"><span class="badge bg-success">Activo</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">María Solicitante</td>
+                        <td class="text-muted">usuario@empresa.cl</td>
+                        <td><span class="badge bg-secondary">Solicitante</span></td>
+                        <td>Recursos Humanos</td>
+                        <td class="text-center"><span class="badge bg-success">Activo</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Pedro Ventas</td>
+                        <td class="text-muted">pedro.v@empresa.cl</td>
+                        <td><span class="badge bg-secondary">Solicitante</span></td>
+                        <td>Comercial</td>
+                        <td class="text-center"><span class="badge bg-secondary">Inactivo</span></td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body p-0">
-        <table class="table table-striped table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Nombre Completo</th>
-                    <th>Correo Electrónico</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th class="text-center">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Carlos Ramos</td>
-                    <td>admin@empresa.cl</td>
-                    <td><span class="badge bg-dark">Administrador</span></td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Luis Técnico</td>
-                    <td>tecnico@empresa.cl</td>
-                    <td><span class="badge bg-info text-dark">Técnico</span></td>
-                    <td><span class="badge bg-success">Activo</span></td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Ana Usuario</td>
-                    <td>usuario@empresa.cl</td>
-                    <td><span class="badge bg-secondary">Solicitante</span></td>
-                    <td><span class="badge bg-danger">Inactivo</span></td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-secondary">Editar</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-</div>
-</div>
-</div>
-</div>
-
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

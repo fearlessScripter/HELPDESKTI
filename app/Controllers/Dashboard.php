@@ -19,6 +19,14 @@ class Dashboard extends BaseController
             'rol'    => $session->get('rol')
         ];
 
-        return view('dashboard/index', $data);
+        $rol = $session->get('rol');
+
+        if ($rol === 'Solicitante') {
+            return view('dashboard/solicitante', $data);
+        } elseif ($rol === 'Técnico') {
+            return view('dashboard/tecnico', $data);
+        } else {
+            return view('dashboard/admin', $data);
+        }
     }
 }

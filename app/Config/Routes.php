@@ -15,6 +15,8 @@ $routes->get('/tickets/cola', 'Tickets::cola');
 // Rutas de Tickets (Solicitante y Técnico)
 $routes->get('/tickets/mis-tickets', 'Tickets::misTickets');
 $routes->get('/tickets/asignados', 'Tickets::asignados');
+$routes->get('/tickets/detalles/(:segment)', 'Tickets::detalles/$1');
+$routes->get('/tickets/detalles', 'Tickets::detalles');
 
 // Rutas de Administrador y Base de Conocimientos
 $routes->get('/reportes', 'Reportes::index');

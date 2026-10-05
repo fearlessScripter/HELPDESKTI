@@ -30,6 +30,7 @@ class Tickets extends BaseController
     {
         $data = $this->getSessionData();
         if (!$data) return redirect()->to('/auth');
+        if (!in_array($data['rol'], ['Administrador', 'Técnico'])) return redirect()->to('/dashboard');
         return view('tickets/cola', $data);
     }
 
@@ -44,6 +45,17 @@ class Tickets extends BaseController
     {
         $data = $this->getSessionData();
         if (!$data) return redirect()->to('/auth');
+        if (!in_array($data['rol'], ['Administrador', 'Técnico'])) return redirect()->to('/dashboard');
         return view('tickets/asignados', $data);
+    }
+
+    public function detalles($id = null)
+    {
+        $data = $this->getSessionData();
+        if (!$data) return redirect()->to('/auth');
+        
+        // Pass a mock ticket ID for demonstration
+        $data['ticket_id'] = $id ?? '1050';
+        return view('tickets/detalles', $data);
     }
 }

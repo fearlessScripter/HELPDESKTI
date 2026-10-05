@@ -261,53 +261,7 @@
 <!-- SIDEBAR -->
 <!-- ===================================================== -->
 
-<div class="sidebar">
-
-    <div class="sidebar-title">
-        <i class="bi bi-headset"></i>
-        HelpDesk TI
-    </div>
-
-
-    <a href="<?= base_url('/dashboard') ?>" class="active">
-
-        <i class="bi bi-ticket-detailed"></i>
-
-        <span>Tickets</span>
-
-    </a>
-
-
-
-
-
-    <a href="<?= base_url('/usuarios') ?>">
-
-        <i class="bi bi-people"></i>
-
-        <span>Usuarios</span>
-
-    </a>
-
-
-    <a href="<?= base_url('/base-conocimientos') ?>">
-
-        <i class="bi bi-book"></i>
-
-        <span>Base de conocimientos</span>
-
-    </a>
-
-
-    <a href="<?= base_url('/reportes') ?>">
-
-        <i class="bi bi-bar-chart"></i>
-
-        <span>Reportes</span>
-
-    </a>
-
-</div>
+<?= view('layout/sidebar', ['active' => 'tickets']) ?>
 
 
 
@@ -322,113 +276,7 @@
     <!-- HEADER -->
     <!-- ================================================= -->
 
-    <div class="topbar">
-
-
-        <div class="page-title">
-
-            Tickets
-
-        </div>
-
-
-
-        <div class="d-flex align-items-center gap-3">
-
-
-            <!-- Notificaciones -->
-
-            <button
-                type="button"
-                class="btn btn-light position-relative">
-
-                <i class="bi bi-bell fs-5"></i>
-
-                <span
-                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-
-                    3
-
-                </span>
-
-            </button>
-
-
-
-            <!-- Usuario -->
-
-            <div class="dropdown">
-
-                <button
-                    class="user-button dropdown-toggle"
-                    type="button"
-                    data-bs-toggle="dropdown">
-
-
-                    <div class="text-end">
-
-                        <div class="user-name">
-
-                            <?= esc($nombre) ?>
-
-                        </div>
-
-                        <div class="user-role">
-
-                            <?= esc($rol) ?>
-
-                        </div>
-
-                    </div>
-
-
-                    <i class="bi bi-person-circle fs-3"></i>
-
-
-                </button>
-
-
-                <ul class="dropdown-menu dropdown-menu-end">
-
-                    <li>
-                        <span class="dropdown-item-text">
-
-                            <strong><?= esc($nombre) ?></strong>
-
-                            <br>
-
-                            <small class="text-muted">
-                                <?= esc($rol) ?>
-                            </small>
-
-                        </span>
-                    </li>
-
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-
-                    <li>
-
-                        <a
-                            class="dropdown-item text-danger"
-                            href="<?= base_url('/logout') ?>">
-
-                            <i class="bi bi-box-arrow-right"></i>
-
-                            Cerrar sesión
-
-                        </a>
-
-                    </li>
-
-                </ul>
-
-            </div>
-
-        </div>
-
-    </div>
+    <?= view('layout/topbar', ['pageTitle' => 'Tickets Sin Asignar']) ?>
 
 
 
@@ -441,33 +289,7 @@
 
         <!-- PESTAÑAS -->
 
-        <div class="ticket-tabs">
-
-            <a href="<?= base_url('/dashboard') ?>">
-
-                Todos
-
-            </a>
-
-            <a href="<?= base_url('/tickets/asignados') ?>">
-
-                Asignados
-
-            </a>
-
-            <a href="<?= base_url('/tickets/cola') ?>" class="active">
-
-                Sin asignar
-
-            </a>
-
-            <a href="<?= base_url('/tickets/mis-tickets') ?>">
-
-                Mis tickets
-
-            </a>
-
-        </div>
+        <?= view('layout/ticket_tabs', ['activeTab' => 'cola']) ?>
 
 
 
@@ -492,17 +314,19 @@
             </div>
 
 
-            <button
-                class="btn btn-outline-secondary">
-
-                <i class="bi bi-funnel"></i>
-
-                Filtros
-
-                <i class="bi bi-chevron-down"></i>
-
-            </button>
-
+            <div class="d-flex gap-2">
+                <button
+                    class="btn btn-outline-secondary">
+                    <i class="bi bi-funnel"></i>
+                    Filtros
+                    <i class="bi bi-chevron-down"></i>
+                </button>
+                <?php if (isset($rol) && $rol !== 'Técnico'): ?>
+                <a href="<?= base_url('/tickets/nuevo') ?>" class="btn btn-primary fw-bold">
+                    <i class="bi bi-plus-lg me-1"></i> Nuevo Ticket
+                </a>
+                <?php endif; ?>
+            </div>
         </div>
 
 
