@@ -108,7 +108,7 @@
                             <i class="bi bi-arrow-up-right-circle fs-4 text-warning"></i>
                         </div>
                         <div>
-                            <h6 class="text-muted fw-bold mb-1">Tickets Escalados a Nivel 3</h6>
+                            <h6 class="text-muted fw-bold mb-1">Tickets Escalados</h6>
                             <h3 class="fw-bold mb-0">15</h3>
                         </div>
                     </div>
@@ -148,9 +148,9 @@
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <h6 class="text-muted text-uppercase fw-bold mb-3">Satisfacción (CSAT)</h6>
-                        <h2 class="fw-bold mb-0 text-primary">4.8/5</h2>
-                        <span class="text-muted small">Basado en 85 encuestas</span>
+                        <h6 class="text-muted text-uppercase fw-bold mb-3">CUMPLIMIENTO OLA (DERIVACIONES)</h6>
+                        <h2 class="fw-bold mb-0 text-success">92%</h2>
+                        <span class="text-muted small">↑ 2% vs mes anterior (Meta: 90%)</span>
                     </div>
                 </div>
             </div>
@@ -237,21 +237,21 @@
                                     <tr>
                                         <td class="fw-bold">#TCK-1023</td>
                                         <td>Luis Técnico</td>
-                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+3.5 hrs</span></td>
+                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+3 horas y 30 minutos</span></td>
                                         <td>Sistemas ERP</td>
                                         <td><span class="badge text-bg-secondary">SLA</span></td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">#TCK-1045</td>
                                         <td>María Soporte</td>
-                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+1.2 hrs</span></td>
+                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+1 hora y 20 minutos</span></td>
                                         <td>Soporte TI</td>
                                         <td><span class="badge text-bg-info text-white">OLA</span></td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">#TCK-1089</td>
                                         <td>Jorge Redes</td>
-                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+4.0 hrs</span></td>
+                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+4 horas exactas</span></td>
                                         <td>Redes y Conectividad</td>
                                         <td><span class="badge text-bg-secondary">SLA</span></td>
                                     </tr>

@@ -50,7 +50,7 @@
                         <div class="accordion-item border-0 mb-2">
                             <h2 class="accordion-header">
                                 <button class="accordion-button fw-bold bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#colapsouno">
-                                    PEO-01: Pasos para restablecer credenciales del ERP
+                                    SOL-001: Pasos para restablecer credenciales del ERP
                                 </button>
                             </h2>
                             <div id="colapsouno" class="accordion-collapse collapse show" data-bs-parent="#accordionConocimientos">
@@ -58,6 +58,11 @@
                                     <strong>1.</strong> Ingresar al panel de administración de Active Directory.<br>
                                     <strong>2.</strong> Buscar el correo del usuario solicitante.<br>
                                     <strong>3.</strong> Hacer clic derecho > Restablecer contraseña y marcar la opción "El usuario debe cambiar la contraseña en el siguiente inicio de sesión".
+                                    <?php if (isset($rol) && $rol === 'Administrador'): ?>
+                                    <div class="mt-3 text-end">
+                                        <button class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modificarSolucionModal"><i class="bi bi-pencil me-1"></i> Modificar</button>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -65,17 +70,50 @@
                         <div class="accordion-item border-0 mb-2">
                             <h2 class="accordion-header">
                                 <button class="accordion-button collapsed fw-bold bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#colapsodos">
-                                    PEO-02: Solución a pantalla azul (Error código 0x0000007B)
+                                    SOL-002: Solución a pantalla azul (Error código 0x0000007B)
                                 </button>
                             </h2>
                             <div id="colapsodos" class="accordion-collapse collapse" data-bs-parent="#accordionConocimientos">
                                 <div class="accordion-body text-muted">
                                     Este error indica un problema con el controlador de almacenamiento SATA. Ingresa a la BIOS del equipo (presionando F2 o DEL), ve a la pestaña "Advanced", cambia la configuración SATA de IDE a AHCI y guarda los cambios.
+                                    <?php if (isset($rol) && $rol === 'Administrador'): ?>
+                                    <div class="mt-3 text-end">
+                                        <button class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modificarSolucionModal"><i class="bi bi-pencil me-1"></i> Modificar</button>
+                                    </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Modificar Solución -->
+<div class="modal fade" id="modificarSolucionModal" tabindex="-1" aria-labelledby="modificarSolucionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modificarSolucionModalLabel">Modificar Solución en Base de Conocimientos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="modificarSolucionForm">
+                    <div class="mb-3">
+                        <label for="codigoTitulo" class="form-label text-muted fw-bold">Código y Título del Problema</label>
+                        <input type="text" class="form-control" id="codigoTitulo" value="SOL-001: Pasos para restablecer credenciales del ERP" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contenidoSolucion" class="form-label text-muted fw-bold">Contenido de la Solución (HTML permitido)</label>
+                        <textarea class="form-control" id="contenidoSolucion" rows="6" required><strong>1.</strong> Ingresar al panel de administración de Active Directory.<br><strong>2.</strong> Buscar el correo del usuario solicitante.<br><strong>3.</strong> Hacer clic derecho > Restablecer contraseña y marcar la opción "El usuario debe cambiar la contraseña en el siguiente inicio de sesión".</textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary fw-bold" onclick="alert('Simulación: Solución actualizada exitosamente.')" data-bs-dismiss="modal">Guardar Cambios</button>
             </div>
         </div>
     </div>
