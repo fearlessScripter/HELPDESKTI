@@ -28,6 +28,13 @@ abstract class BaseController extends Controller
     // protected $session;
 
     /**
+     * Helpers disponibles en todos los controladores y vistas.
+     *
+     * @var list<string>
+     */
+    protected $helpers = ['sla'];
+
+    /**
      * @return void
      */
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)

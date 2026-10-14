@@ -360,102 +360,90 @@
                 </thead>
 
                 <tbody>
-
-                    <tr>
-
-                        <td class="fw-bold">#TK-1045</td>
-
-                        <td>Ana Usuario</td>
-
-                        <td>Error al abrir ERP</td>
-
-                        <td><span class="badge bg-danger">Alta (2h)</span></td>
-
-                        <td><span class="badge bg-danger">Pendiente</span></td>
-                        <td><span class="text-danger fw-bold"><i class="bi bi-clock-history"></i> Quedan 30 min</span></td>
-
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                <?php if (isset($rol) && $rol === 'Técnico'): ?>
-                                <button class="btn btn-sm btn-primary fw-bold">Atender</button>
+                    <?php if (!empty($tickets)): ?>
+                        <?php foreach ($tickets as $t): ?>
+                        <tr>
+                            <td class="fw-bold">
+                                <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="text-decoration-none">
+                                    #<?= esc($t['codigo_ticket'] ?? 'TK-' . $t['id_ticket']) ?>
+                                </a>
+                            </td>
+                            <td><?= esc($t['solicitante_nombre']) ?></td>
+                            <td><?= esc($t['asunto']) ?></td>
+                            <td>
+                                <?php if ($t['prioridad_nombre'] === 'Alta'): ?>
+                                    <span class="badge bg-danger">Alta (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
+                                <?php elseif ($t['prioridad_nombre'] === 'Media'): ?>
+                                    <span class="badge bg-warning text-dark">Media (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
+                                <?php else: ?>
+                                    <span class="badge bg-info text-dark">Baja (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
                                 <?php endif; ?>
+                            </td>
+                            <td><span class="badge bg-warning text-dark">En Proceso</span></td>
+                            <td>
+                                <?= sla_restante_html($t) ?>
+                            </td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-sm btn-primary fw-bold">
+                                        <i class="bi bi-tools me-1"></i> Atender
+                                    </a>
+                                    <?php if (isset($rol) && $rol === 'Administrador'): ?>
+                                    <button class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#reasignarModal<?= $t['id_ticket'] ?>">
+                                        <i class="bi bi-arrow-left-right me-1"></i> Reasignar
+                                    </button>
+                                    <?php endif; ?>
+                                </div>
+
                                 <?php if (isset($rol) && $rol === 'Administrador'): ?>
-                                <button class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#reasignarModal">Reasignar</button>
+                                <div class="modal fade" id="reasignarModal<?= $t['id_ticket'] ?>" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog text-start">
+                                        <div class="modal-content">
+                                            <form action="<?= base_url('/tickets/reasignar') ?>" method="post">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="id_ticket" value="<?= $t['id_ticket'] ?>">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title fw-bold">Reasignar Ticket #<?= esc($t['codigo_ticket']) ?></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-muted fw-bold">Asignar a nuevo técnico:</label>
+                                                        <select class="form-select" name="id_tecnico" required>
+                                                            <option value="" selected disabled>Seleccione un Técnico...</option>
+                                                            <?php if (!empty($tecnicos)): ?>
+                                                                <?php foreach ($tecnicos as $tec): ?>
+                                                                    <option value="<?= esc($tec['id_usuario']) ?>" <?= ((int)($t['id_tecnico_asignado'] ?? 0) === (int)$tec['id_usuario']) ? 'selected' : '' ?>>
+                                                                        <?= esc($tec['nombre_completo']) ?> (<?= esc($tec['area'] ?? 'Soporte TI') ?>)
+                                                                    </option>
+                                                                <?php endforeach; ?>
+                                                            <?php endif; ?>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label text-muted fw-bold">Motivo de Reasignación</label>
+                                                        <textarea class="form-control" name="motivo" rows="3" placeholder="Ej: Especialista requerido para resolver la falla..." required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-warning fw-bold text-dark">Confirmar Reasignación</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                                 <?php endif; ?>
-                            </div>
-                        </td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td class="fw-bold">#TK-1048</td>
-
-                        <td>Carlos Ramos</td>
-
-                        <td>Configuración de impresora</td>
-
-                        <td><span class="badge bg-info text-dark">Baja (24h)</span></td>
-
-                        <td><span class="badge bg-warning text-dark">En Proceso</span></td>
-                        <td><span class="text-success"><i class="bi bi-clock"></i> Quedan 22 hrs</span></td>
-
-                        <td class="text-center">
-                            <div class="d-flex justify-content-center gap-2">
-                                <?php if (isset($rol) && $rol === 'Técnico'): ?>
-                                <button class="btn btn-sm btn-primary fw-bold">Atender</button>
-                                <?php endif; ?>
-                                <?php if (isset($rol) && $rol === 'Administrador'): ?>
-                                <button class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#reasignarModal">Reasignar</button>
-                                <?php endif; ?>
-                            </div>
-                        </td>
-
-                    </tr>
-
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No hay tickets asignados en proceso.</td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
-
             </table>
-
-        </div>
-
-
-    </div>
-
-</div>
-
-
-
-<!-- Modal Reasignar Ticket -->
-<div class="modal fade" id="reasignarModal" tabindex="-1" aria-labelledby="reasignarModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title fw-bold" id="reasignarModalLabel">Reasignar / Escalar Ticket</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="reasignarForm">
-                    <div class="mb-3">
-                        <label for="tecnicoSelect" class="form-label text-muted fw-bold">Asignar a:</label>
-                        <select class="form-select" id="tecnicoSelect" required>
-                            <option value="" selected disabled>Seleccione un Técnico / Administrador...</option>
-                            <option value="1">Luis Técnico (Técnico N1)</option>
-                            <option value="2">María Soporte (Técnico N2)</option>
-                            <option value="3">Jorge Redes (Especialista Redes)</option>
-                            <option value="4">Admin Principal (Administrador)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="motivoReasignacion" class="form-label text-muted fw-bold">Motivo de Reasignación</label>
-                        <textarea class="form-control" id="motivoReasignacion" rows="3" placeholder="Ej: Requiere escalamiento a nivel 2 por complejidad..." required></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-warning fw-bold text-dark" onclick="alert('Simulación: Ticket reasignado exitosamente.')" data-bs-dismiss="modal">Confirmar Reasignación</button>
-            </div>
         </div>
     </div>
 </div>

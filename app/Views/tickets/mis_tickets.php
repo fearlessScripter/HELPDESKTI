@@ -362,51 +362,74 @@
                 </thead>
 
                 <tbody>
-
-                    <tr>
-
-                        <td class="fw-bold">#TK-1050</td>
-                        <?php if (isset($rol) && $rol === 'Técnico'): ?>
-                        <td>Ana Usuario</td>
-                        <td>No enciende el computador</td>
-                        <td><span class="badge bg-danger">Alta (2h)</span></td>
-                        <td><span class="badge bg-warning text-dark">En Proceso</span></td>
-                        <td><span class="text-danger fw-bold"><i class="bi bi-clock-history"></i> Quedan 30 min</span></td>
-                        <?php else: ?>
-                        <td>No enciende el computador</td>
-                        <td>04/10/2026</td>
-                        <td><span class="badge bg-warning text-dark">En Proceso</span></td>
-                        <?php endif; ?>
-
-                        <td class="text-center"><a href="<?= base_url('/tickets/detalles') ?>" class="btn btn-sm btn-outline-secondary">Ver Detalles</a></td>
-
-                    </tr>
-
-                    <tr>
-
-                        <td class="fw-bold">#TK-1021</td>
-                        <?php if (isset($rol) && $rol === 'Técnico'): ?>
-                        <td>Carlos Ramos</td>
-                        <td>Fallo en conexión WiFi</td>
-                        <td><span class="badge bg-info text-dark">Baja (24h)</span></td>
-                        <td><span class="badge bg-success">Resuelto</span></td>
-                        <td><span class="text-success"><i class="bi bi-clock"></i> Resuelto a tiempo</span></td>
-                        <?php else: ?>
-                        <td>Fallo en conexión WiFi</td>
-                        <td>01/10/2026</td>
-                        <td><span class="badge bg-success">Resuelto</span></td>
-                        <?php endif; ?>
-                        <td class="text-center">
-                            <a href="<?= base_url('/tickets/detalles') ?>?id=TK-1021" class="btn btn-sm btn-outline-secondary">Ver Detalles</a>
-                            <?php if ($rol === 'Solicitante'): ?>
-                            <a href="<?= base_url('/tickets/detalles') ?>?id=TK-1021" class="btn btn-sm btn-success ms-1">
-                                <i class="bi bi-check2-circle"></i> Cerrar
-                            </a>
+                    <?php if (!empty($tickets)): ?>
+                        <?php foreach ($tickets as $t): ?>
+                        <tr>
+                            <td class="fw-bold">
+                                <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="text-decoration-none">
+                                    #<?= esc($t['codigo_ticket'] ?? 'TK-' . $t['id_ticket']) ?>
+                                </a>
+                            </td>
+                            <?php if (isset($rol) && $rol === 'Técnico'): ?>
+                                <td><?= esc($t['solicitante_nombre']) ?></td>
+                                <td><?= esc($t['asunto']) ?></td>
+                                <td>
+                                    <?php if ($t['prioridad_nombre'] === 'Alta'): ?>
+                                        <span class="badge bg-danger">Alta (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
+                                    <?php elseif ($t['prioridad_nombre'] === 'Media'): ?>
+                                        <span class="badge bg-warning text-dark">Media (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-info text-dark">Baja (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($t['estado_nombre'] === 'Pendiente'): ?>
+                                        <span class="badge bg-danger">Pendiente</span>
+                                    <?php elseif ($t['estado_nombre'] === 'En Proceso'): ?>
+                                        <span class="badge bg-warning text-dark">En Proceso</span>
+                                    <?php elseif ($t['estado_nombre'] === 'Resuelto'): ?>
+                                        <span class="badge bg-success">Resuelto</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">Cerrado</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?= sla_restante_html($t) ?>
+                                </td>
+                            <?php else: ?>
+                                <td><?= esc($t['asunto']) ?></td>
+                                <td><?= esc(date('d/m/Y', strtotime($t['fecha_creacion']))) ?></td>
+                                <td>
+                                    <?php if ($t['estado_nombre'] === 'Pendiente'): ?>
+                                        <span class="badge bg-danger">Pendiente</span>
+                                    <?php elseif ($t['estado_nombre'] === 'En Proceso'): ?>
+                                        <span class="badge bg-warning text-dark">En Proceso</span>
+                                    <?php elseif ($t['estado_nombre'] === 'Resuelto'): ?>
+                                        <span class="badge bg-success">Resuelto</span>
+                                    <?php else: ?>
+                                        <span class="badge bg-secondary">Cerrado</span>
+                                    <?php endif; ?>
+                                </td>
                             <?php endif; ?>
-                        </td>
 
-                    </tr>
-
+                            <td class="text-center">
+                                <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-sm btn-outline-secondary">Ver Detalles</a>
+                                <?php if ((int)$t['id_solicitante'] === (int)$id_usuario && (int)$t['id_estado'] === 3): ?>
+                                    <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-sm btn-success ms-1 fw-bold">
+                                        <i class="bi bi-check2-circle"></i> Confirmar Cierre
+                                    </a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="<?= (isset($rol) && $rol === 'Técnico') ? '7' : '5' ?>" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                No se encontraron tickets registrados.
+                            </td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
 
             </table>

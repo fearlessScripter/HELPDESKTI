@@ -251,7 +251,7 @@
                                     <tr>
                                         <td class="fw-bold">#TCK-1089</td>
                                         <td>Jorge Redes</td>
-                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+4 horas exactas</span></td>
+                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+4 horas</span></td>
                                         <td>Redes y Conectividad</td>
                                         <td><span class="badge text-bg-secondary">SLA</span></td>
                                     </tr>

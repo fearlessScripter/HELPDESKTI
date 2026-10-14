@@ -2,7 +2,15 @@
 $session = session();
 $nombre = $session->get('nombre_completo');
 $rol = $session->get('rol');
+$idUsuario = (int)$session->get('id_usuario');
 $pageTitle = $pageTitle ?? 'Inicio';
+
+// Cargar notificaciones dinámicas si no vienen inyectadas
+if (!isset($notificaciones)) {
+    $notifModel = new \App\Models\NotificacionModel();
+    $notificaciones = $notifModel->getPorUsuario($idUsuario, 5);
+    $conteoNoLeidas = $notifModel->getConteoNoLeidas($idUsuario);
+}
 ?>
 <div class="topbar">
 
@@ -17,32 +25,51 @@ $pageTitle = $pageTitle ?? 'Inicio';
 
         <!-- Notificaciones -->
         <div class="dropdown">
-            <button type="button" class="btn btn-light position-relative" data-bs-toggle="dropdown" aria-expanded="false">
+            <button type="button" class="btn btn-light position-relative" data-bs-toggle="dropdown" aria-expanded="false" title="Notificaciones">
                 <i class="bi bi-bell fs-5"></i>
+                <?php if (!empty($conteoNoLeidas) && $conteoNoLeidas > 0): ?>
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    3
+                    <?= esc($conteoNoLeidas) ?>
                 </span>
+                <?php endif; ?>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 350px;">
-                <li><h6 class="dropdown-header fw-bold">Notificaciones Recientes</h6></li>
-                <?php if (isset($rol) && $rol === 'Solicitante'): ?>
-                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-check-circle-fill text-success me-2"></i> TICKET REGISTRADO: Solicitud #TK-1055 creada exitosamente.</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> ACCIÓN REQUERIDA: Técnico resolvió ticket #TK-1021. Confirma el cierre.</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-info-circle-fill text-info me-2"></i> TICKET EN PROCESO: Ticket #TK-1050 fue asignado a Luis Técnico.</a></li>
-                <?php elseif (isset($rol) && $rol === 'Técnico'): ?>
-                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> RIESGO SLA: Ticket #TK-1045 vence en 30 min.</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-info-circle-fill text-info me-2"></i> NUEVO TICKET: Se te asignó el ticket #TK-1090.</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-arrow-left-right text-primary me-2"></i> REASIGNACIÓN: Ticket #TK-1021 transferido a tu cola (SLA Restante: 45 min).</a></li>
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 360px; max-height: 400px; overflow-y: auto;">
+                <li class="d-flex justify-content-between align-items-center pe-2">
+                    <h6 class="dropdown-header fw-bold">Notificaciones Recientes</h6>
+                    <?php if (!empty($conteoNoLeidas) && $conteoNoLeidas > 0): ?>
+                    <form action="<?= base_url('/notificaciones/leer-todas') ?>" method="post" class="m-0">
+                        <?= csrf_field() ?>
+                        <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0" style="font-size: 12px;">
+                            <i class="bi bi-check2-all"></i> Marcar todas como leídas
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                </li>
+                <?php if (!empty($notificaciones)): ?>
+                    <?php foreach ($notificaciones as $n): ?>
+                        <?php $noLeida = (int)$n['leida'] === 0; ?>
+                        <li>
+                            <a class="dropdown-item text-wrap py-2 <?= $noLeida ? 'fw-semibold bg-primary-subtle' : 'text-secondary' ?>" href="<?= base_url('/notificaciones/leer/' . $n['id_notificacion']) ?>">
+                                <?php if ($noLeida): ?>
+                                    <i class="bi bi-circle-fill text-primary me-1" style="font-size: 8px;" title="No leída"></i>
+                                <?php endif; ?>
+                                <?php if ($n['tipo_alerta'] === 'alerta' || $n['tipo_alerta'] === 'sla_vencido' || $n['tipo_alerta'] === 'urgente'): ?>
+                                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                                <?php elseif ($n['tipo_alerta'] === 'resolucion'): ?>
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                <?php elseif ($n['tipo_alerta'] === 'asignacion'): ?>
+                                    <i class="bi bi-gear-fill text-primary me-2"></i>
+                                <?php else: ?>
+                                    <i class="bi bi-info-circle-fill text-info me-2"></i>
+                                <?php endif; ?>
+                                <span><?= esc($n['mensaje']) ?></span>
+                                <br><small class="text-muted ms-4" style="font-size: 11px;"><?= esc($n['fecha_creacion']) ?></small>
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                    <?php endforeach; ?>
                 <?php else: ?>
-                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> ALERTA SLA: Ticket #TCK-1023 superó el tiempo máximo de resolución (+3.5 hrs).</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-info-circle-fill text-info me-2"></i> NUEVO TICKET: Se asignó el ticket #TCK-1090 (Prioridad: Alta) a tu cola operativa.</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-wrap py-2" href="#"><i class="bi bi-check-circle-fill text-success me-2"></i> TICKET CERRADO: El solicitante confirmó la solución del ticket #TCK-1042.</a></li>
+                    <li><span class="dropdown-item text-muted small py-2">No tienes notificaciones pendientes.</span></li>
                 <?php endif; ?>
             </ul>
         </div>
@@ -58,10 +85,10 @@ $pageTitle = $pageTitle ?? 'Inicio';
                         <?= esc($rol) ?>
                     </div>
                 </div>
-                <i class="bi bi-person-circle fs-3"></i>
+                <i class="bi bi-person-circle fs-3 text-secondary"></i>
             </button>
 
-            <ul class="dropdown-menu dropdown-menu-end">
+            <ul class="dropdown-menu dropdown-menu-end shadow">
                 <li>
                     <span class="dropdown-item-text">
                         <strong><?= esc($nombre) ?></strong><br>
@@ -71,7 +98,7 @@ $pageTitle = $pageTitle ?? 'Inicio';
                 <li><hr class="dropdown-divider"></li>
                 <li>
                     <a class="dropdown-item text-danger" href="<?= base_url('/logout') ?>">
-                        <i class="bi bi-box-arrow-right"></i>
+                        <i class="bi bi-box-arrow-right me-1"></i>
                         Cerrar sesión
                     </a>
                 </li>
@@ -81,3 +108,24 @@ $pageTitle = $pageTitle ?? 'Inicio';
     </div>
 
 </div>
+
+<!-- Alertas Flash -->
+<?php if (session()->getFlashdata('success')): ?>
+<div class="container-fluid px-4 pt-3">
+    <div class="alert alert-success alert-dismissible fade show shadow-sm mb-0" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <?= session()->getFlashdata('success') ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if (session()->getFlashdata('error')): ?>
+<div class="container-fluid px-4 pt-3">
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-0" role="alert">
+        <i class="bi bi-exclamation-octagon-fill me-2"></i>
+        <?= session()->getFlashdata('error') ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+<?php endif; ?>

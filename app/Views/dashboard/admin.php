@@ -66,7 +66,7 @@
                                 <i class="bi bi-list-task fs-5"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold display-5 mb-0">124</h2>
+                        <h2 class="fw-bold display-5 mb-0"><?= esc($metricas['total'] ?? 0) ?></h2>
                     </div>
                 </div>
             </div>
@@ -76,12 +76,12 @@
                 <div class="card border-0 shadow-sm h-100" style="border-left: 5px solid #dc3545 !important;">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="text-muted text-uppercase fw-bold mb-0">Sin Asignar</h6>
+                            <h6 class="text-muted text-uppercase fw-bold mb-0">Sin Asignar (Pendientes)</h6>
                             <div class="bg-danger bg-opacity-10 text-danger rounded d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
                                 <i class="bi bi-exclamation-triangle fs-5"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold display-5 mb-0">12</h2>
+                        <h2 class="fw-bold display-5 mb-0"><?= esc($metricas['pendientes'] ?? 0) ?></h2>
                     </div>
                 </div>
             </div>
@@ -96,7 +96,7 @@
                                 <i class="bi bi-gear fs-5"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold display-5 mb-0">45</h2>
+                        <h2 class="fw-bold display-5 mb-0"><?= esc($metricas['en_proceso'] ?? 0) ?></h2>
                     </div>
                 </div>
             </div>
@@ -111,14 +111,14 @@
                                 <i class="bi bi-check-circle fs-5"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold display-5 mb-0">67</h2>
+                        <h2 class="fw-bold display-5 mb-0"><?= esc($metricas['resueltos'] ?? 0) ?></h2>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="mb-0 fw-semibold">Tickets Recientes Críticos</h4>
+            <h4 class="mb-0 fw-semibold">Tickets Recientes en el Sistema</h4>
             <a href="<?= base_url('/tickets/todos') ?>" class="btn btn-sm btn-outline-primary">Ver Todos</a>
         </div>
         
@@ -130,27 +130,49 @@
                         <th>Solicitante</th>
                         <th>Asunto</th>
                         <th>Área</th>
+                        <th>Prioridad</th>
                         <th>Estado</th>
                         <th class="text-center">Acción</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td class="fw-bold">#TK-1045</td>
-                        <td>Ana Usuario</td>
-                        <td>Caída del servidor de base de datos</td>
-                        <td>Sistemas ERP</td>
-                        <td><span class="badge bg-danger">Pendiente</span></td>
-                        <td class="text-center"><a href="<?= base_url('/tickets/todos') ?>" class="btn btn-sm btn-primary fw-bold">Ver Ticket</a></td>
-                    </tr>
-                    <tr>
-                        <td class="fw-bold">#TK-1048</td>
-                        <td>Carlos Ramos</td>
-                        <td>Falla general de red piso 3</td>
-                        <td>Redes y Conectividad</td>
-                        <td><span class="badge bg-danger">Pendiente</span></td>
-                        <td class="text-center"><a href="<?= base_url('/tickets/todos') ?>" class="btn btn-sm btn-primary fw-bold">Ver Ticket</a></td>
-                    </tr>
+                    <?php if (!empty($ticketsRecientes)): ?>
+                        <?php foreach ($ticketsRecientes as $tr): ?>
+                        <tr>
+                            <td class="fw-bold">#<?= esc($tr['codigo_ticket'] ?? 'TK-' . $tr['id_ticket']) ?></td>
+                            <td><?= esc($tr['solicitante_nombre']) ?></td>
+                            <td><?= esc($tr['asunto']) ?></td>
+                            <td><?= esc($tr['area_nombre']) ?></td>
+                            <td>
+                                <?php if ($tr['prioridad_nombre'] === 'Alta'): ?>
+                                    <span class="badge bg-danger">Alta (<?= formato_minutos((int)$tr['sla_minutos']) ?>)</span>
+                                <?php elseif ($tr['prioridad_nombre'] === 'Media'): ?>
+                                    <span class="badge bg-warning text-dark">Media (<?= formato_minutos((int)$tr['sla_minutos']) ?>)</span>
+                                <?php else: ?>
+                                    <span class="badge bg-info text-dark">Baja (<?= formato_minutos((int)$tr['sla_minutos']) ?>)</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if ($tr['estado_nombre'] === 'Pendiente'): ?>
+                                    <span class="badge bg-danger">Pendiente</span>
+                                <?php elseif ($tr['estado_nombre'] === 'En Proceso'): ?>
+                                    <span class="badge bg-warning text-dark">En Proceso</span>
+                                <?php elseif ($tr['estado_nombre'] === 'Resuelto'): ?>
+                                    <span class="badge bg-success">Resuelto</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Cerrado</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <a href="<?= base_url('/tickets/detalles/' . $tr['id_ticket']) ?>" class="btn btn-sm btn-primary fw-bold">Ver Ticket</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No hay tickets registrados aún.</td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

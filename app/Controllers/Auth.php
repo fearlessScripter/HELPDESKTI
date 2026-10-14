@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Models\UsuarioModel;
+
 class Auth extends BaseController
 {
     public function index()
@@ -15,46 +17,34 @@ class Auth extends BaseController
     public function login()
     {
         $session = session();
-        $correo = $this->request->getPost('correo');
-        $password = $this->request->getPost('password');
+        $correo = trim((string)$this->request->getPost('correo'));
+        $password = (string)$this->request->getPost('password');
 
-        // MODO PRUEBA: Validación sin base de datos para los 3 roles
-        if ($password === '123456') {
-            
-            if ($correo === 'admin@empresa.cl') {
-                $sesionData = [
-                    'id_usuario'      => 1,
-                    'nombre_completo' => 'Carlos Ramos',
-                    'rol'             => 'Administrador',
-                    'isLoggedIn'      => true
-                ];
-            } elseif ($correo === 'tecnico@empresa.cl') {
-                $sesionData = [
-                    'id_usuario'      => 2,
-                    'nombre_completo' => 'Luis Técnico',
-                    'rol'             => 'Técnico',
-                    'isLoggedIn'      => true
-                ];
-            } elseif ($correo === 'usuario@empresa.cl') {
-                $sesionData = [
-                    'id_usuario'      => 3,
-                    'nombre_completo' => 'Ana Usuario',
-                    'rol'             => 'Solicitante',
-                    'isLoggedIn'      => true
-                ];
-            } else {
-                $session->setFlashdata('error', 'Correo no existe en el sistema de pruebas.');
-                return redirect()->to('/auth');
-            }
-
-            // Si el correo es válido, guardamos la sesión y vamos al dashboard
-            $session->set($sesionData);
-            return redirect()->to('/dashboard');
-
-        } else {
-            $session->setFlashdata('error', 'Contraseña incorrecta. (Usa: 123456)');
+        if (empty($correo) || empty($password)) {
+            $session->setFlashdata('error', 'Por favor ingresa tu correo y contraseña.');
             return redirect()->to('/auth');
         }
+
+        $usuarioModel = new UsuarioModel();
+        $usuario = $usuarioModel->validarLogin($correo, $password);
+
+        if ($usuario) {
+            $sesionData = [
+                'id_usuario'      => (int)$usuario['id_usuario'],
+                'nombre_completo' => $usuario['nombre_completo'],
+                'correo'          => $usuario['correo'],
+                'rol'             => $usuario['rol'], // 'Administrador', 'Técnico', 'Solicitante'
+                'id_rol'          => (int)$usuario['id_rol'],
+                'area'            => $usuario['area'] ?? null,
+                'isLoggedIn'      => true,
+            ];
+
+            $session->set($sesionData);
+            return redirect()->to('/dashboard');
+        }
+
+        $session->setFlashdata('error', 'Credenciales incorrectas o usuario inactivo.');
+        return redirect()->to('/auth');
     }
 
     public function logout()

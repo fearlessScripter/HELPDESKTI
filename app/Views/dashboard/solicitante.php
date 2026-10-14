@@ -199,7 +199,7 @@
                                 <i class="bi bi-hourglass-split"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold display-5 mb-0">2</h2>
+                        <h2 class="fw-bold display-5 mb-0"><?= esc($metricas['pendientes'] ?? 0) ?></h2>
                     </div>
                 </div>
             </div>
@@ -214,7 +214,7 @@
                                 <i class="bi bi-gear"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold display-5 mb-0">1</h2>
+                        <h2 class="fw-bold display-5 mb-0"><?= esc($metricas['en_proceso'] ?? 0) ?></h2>
                     </div>
                 </div>
             </div>
@@ -229,7 +229,7 @@
                                 <i class="bi bi-check-circle"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold display-5 mb-0">3</h2>
+                        <h2 class="fw-bold display-5 mb-0"><?= esc($metricas['resueltos'] ?? 0) ?></h2>
                     </div>
                 </div>
             </div>

@@ -2,24 +2,45 @@
 
 use CodeIgniter\Router\RouteCollection;
 
-$routes->get('/', 'Auth::index'); // La ruta principal lleva al login
+/**
+ * @var RouteCollection $routes
+ */
+
+// Autenticación
+$routes->get('/', 'Auth::index');
 $routes->get('/auth', 'Auth::index');
 $routes->post('/auth/login', 'Auth::login');
 $routes->get('/logout', 'Auth::logout');
+
+// Dashboard
 $routes->get('/dashboard', 'Dashboard::index');
 
-// Rutas de navegación pura (Vistas)
-$routes->get('/tickets/nuevo', 'Tickets::nuevo');// Crearemos este controlador después
-// Ruta para la Cola de Tickets del Administrador
+// Tickets: Vistas
+$routes->get('/tickets/nuevo', 'Tickets::nuevo');
 $routes->get('/tickets/cola', 'Tickets::cola');
 $routes->get('/tickets/todos', 'Tickets::todos');
-// Rutas de Tickets (Solicitante y Técnico)
 $routes->get('/tickets/mis-tickets', 'Tickets::misTickets');
 $routes->get('/tickets/asignados', 'Tickets::asignados');
 $routes->get('/tickets/detalles/(:segment)', 'Tickets::detalles/$1');
 $routes->get('/tickets/detalles', 'Tickets::detalles');
 
-// Rutas de Administrador y Base de Conocimientos
-$routes->get('/reportes', 'Reportes::index');
-$routes->get('/usuarios', 'Usuarios::index');
+// Tickets: Acciones del Ciclo de Vida
+$routes->post('/tickets/crear', 'Tickets::crear');
+$routes->post('/tickets/asignar', 'Tickets::asignar');
+$routes->post('/tickets/reasignar', 'Tickets::reasignar');
+$routes->post('/tickets/resolver', 'Tickets::resolver');
+$routes->post('/tickets/cerrar', 'Tickets::cerrar');
+
+// Base de Conocimientos
 $routes->get('/base-conocimientos', 'BaseConocimientos::index');
+$routes->post('/base-conocimientos/crear', 'BaseConocimientos::crear');
+$routes->post('/base-conocimientos/actualizar', 'BaseConocimientos::actualizar');
+
+// Notificaciones
+$routes->get('/notificaciones/leer/(:num)', 'Notificaciones::leer/$1');
+$routes->post('/notificaciones/leer-todas', 'Notificaciones::leerTodas');
+
+// Usuarios y Reportes
+$routes->get('/usuarios', 'Usuarios::index');
+$routes->post('/usuarios/crear', 'Usuarios::crear');
+$routes->get('/reportes', 'Reportes::index');

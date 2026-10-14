@@ -58,95 +58,41 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td class="fw-bold">Juan Administrador</td>
-                        <td class="text-muted">admin@empresa.cl</td>
-                        <td><span class="badge bg-dark">Administrador</span></td>
-                        <td>Gerencia TI</td>
-                        <td class="text-center"><span class="badge bg-success">Activo</span></td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarUsuarioModal"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="fw-bold">Luis Técnico</td>
-                        <td class="text-muted">tecnico@empresa.cl</td>
-                        <td><span class="badge bg-info text-dark">Técnico</span></td>
-                        <td>Soporte Nivel 2</td>
-                        <td class="text-center"><span class="badge bg-success">Activo</span></td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarUsuarioModal"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="fw-bold">María Solicitante</td>
-                        <td class="text-muted">usuario@empresa.cl</td>
-                        <td><span class="badge bg-secondary">Solicitante</span></td>
-                        <td>Recursos Humanos</td>
-                        <td class="text-center"><span class="badge bg-success">Activo</span></td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarUsuarioModal"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="fw-bold">Pedro Ventas</td>
-                        <td class="text-muted">pedro.v@empresa.cl</td>
-                        <td><span class="badge bg-secondary">Solicitante</span></td>
-                        <td>Comercial</td>
-                        <td class="text-center"><span class="badge bg-secondary">Inactivo</span></td>
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editarUsuarioModal"><i class="bi bi-pencil"></i></button>
-                            <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </td>
-                    </tr>
+                    <?php if (!empty($usuarios)): ?>
+                        <?php foreach ($usuarios as $u): ?>
+                        <tr>
+                            <td class="fw-bold"><?= esc($u['nombre_completo']) ?></td>
+                            <td class="text-muted"><?= esc($u['correo']) ?></td>
+                            <td>
+                                <?php if ($u['id_rol'] == 1): ?>
+                                    <span class="badge bg-dark">Administrador</span>
+                                <?php elseif ($u['id_rol'] == 2): ?>
+                                    <span class="badge bg-info text-dark">Técnico</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Solicitante</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><?= esc($u['area_nombre'] ?? 'Sin asignar') ?></td>
+                            <td class="text-center">
+                                <span class="badge <?= $u['estado'] === 'activo' ? 'bg-success' : 'bg-secondary' ?>">
+                                    <?= ucfirst(esc($u['estado'])) ?>
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-outline-secondary" title="Usuario activo"><i class="bi bi-shield-check"></i></button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No se encontraron usuarios registrados.</td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-<!-- Modal Editar Usuario -->
-<div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-labelledby="editarUsuarioModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-light">
-                <h5 class="modal-title fw-bold" id="editarUsuarioModalLabel">Modificar Usuario</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form id="editarUsuarioForm" onsubmit="alert('Simulación: Usuario actualizado exitosamente.'); event.preventDefault(); $('#editarUsuarioModal').modal('hide');">
-                    <div class="mb-3">
-                        <label for="editNombre" class="form-label fw-semibold">Nombre Completo</label>
-                        <input type="text" class="form-control" id="editNombre" value="Usuario de Ejemplo" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editRol" class="form-label fw-semibold">Rol del Sistema <span class="text-danger">*</span></label>
-                        <select class="form-select" id="editRol" required>
-                            <option value="Administrador">Administrador</option>
-                            <option value="Técnico">Técnico</option>
-                            <option selected value="Solicitante">Solicitante</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label for="editEstado" class="form-label fw-semibold">Estado <span class="text-danger">*</span></label>
-                        <select class="form-select" id="editEstado" required>
-                            <option selected value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
-                        </select>
-                    </div>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
 
 <!-- Modal Nuevo Usuario -->
 <div class="modal fade" id="nuevoUsuarioModal" tabindex="-1" aria-labelledby="nuevoUsuarioModalLabel" aria-hidden="true">
@@ -157,31 +103,39 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <form id="nuevoUsuarioForm" onsubmit="alert('Simulación: Nuevo usuario registrado exitosamente.'); event.preventDefault(); $('#nuevoUsuarioModal').modal('hide');">
+                <form action="<?= base_url('/usuarios/crear') ?>" method="post">
+                    <?= csrf_field() ?>
                     <div class="mb-3">
                         <label for="nuevoNombre" class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="nuevoNombre" placeholder="Ej: Juan Pérez" required>
+                        <input type="text" class="form-control" id="nuevoNombre" name="nombre_completo" placeholder="Ej: Juan Pérez" required>
                     </div>
                     <div class="mb-3">
                         <label for="nuevoCorreo" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="nuevoCorreo" placeholder="ejemplo@empresa.cl" required>
+                        <input type="email" class="form-control" id="nuevoCorreo" name="correo" placeholder="ejemplo@empresa.cl" required>
                     </div>
                     <div class="mb-3">
                         <label for="nuevaClave" class="form-label fw-semibold">Contraseña Inicial <span class="text-danger">*</span></label>
-                        <input type="password" class="form-control" id="nuevaClave" placeholder="Asigne una contraseña temporal" required>
+                        <input type="password" class="form-control" id="nuevaClave" name="password" placeholder="Asigne una contraseña" required>
                     </div>
                     <div class="mb-3">
                         <label for="nuevoRol" class="form-label fw-semibold">Rol del Sistema <span class="text-danger">*</span></label>
-                        <select class="form-select" id="nuevoRol" required>
+                        <select class="form-select" id="nuevoRol" name="id_rol" required>
                             <option value="" selected disabled>Seleccione un rol...</option>
-                            <option value="Administrador">Administrador</option>
-                            <option value="Técnico">Técnico</option>
-                            <option value="Solicitante">Solicitante</option>
+                            <option value="1">Administrador</option>
+                            <option value="2">Técnico</option>
+                            <option value="3">Solicitante</option>
                         </select>
                     </div>
                     <div class="mb-4">
                         <label for="nuevoArea" class="form-label fw-semibold">Área / Departamento</label>
-                        <input type="text" class="form-control" id="nuevoArea" placeholder="Ej: Recursos Humanos, Soporte TI...">
+                        <select class="form-select" id="nuevoArea" name="id_area">
+                            <option value="">Sin área específica</option>
+                            <?php if (!empty($areas)): ?>
+                                <?php foreach ($areas as $a): ?>
+                                    <option value="<?= esc($a['id_area']) ?>"><?= esc($a['nombre']) ?></option>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </select>
                     </div>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>

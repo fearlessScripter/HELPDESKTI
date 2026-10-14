@@ -67,7 +67,7 @@
                                 <i class="bi bi-gear"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold display-5 mb-0">2</h2>
+                        <h2 class="fw-bold display-5 mb-0"><?= esc($metricas['en_proceso'] ?? 0) ?></h2>
                     </div>
                 </div>
             </div>
@@ -82,13 +82,13 @@
                                 <i class="bi bi-check-circle"></i>
                             </div>
                         </div>
-                        <h2 class="fw-bold display-5 mb-0">5</h2>
+                        <h2 class="fw-bold display-5 mb-0"><?= esc($metricas['resueltos'] ?? 0) ?></h2>
                     </div>
                 </div>
             </div>
         </div>
 
-        <h4 class="mb-3 fw-semibold">Mis Tickets Asignados Recientes</h4>
+        <h4 class="mb-3 fw-semibold">Mis Tickets Asignados En Proceso</h4>
         <div class="ticket-table">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
@@ -102,22 +102,32 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td class="fw-bold">#TK-1045</td>
-                        <td>Ana Usuario</td>
-                        <td>Error al abrir ERP</td>
-                        <td><span class="badge bg-danger">Alta (2h)</span></td>
-                        <td><span class="badge bg-warning text-dark">En Proceso</span></td>
-                        <td class="text-center"><a href="<?= base_url('/tickets/mis-tickets') ?>" class="btn btn-sm btn-primary fw-bold">Ir a Tickets</a></td>
-                    </tr>
-                    <tr>
-                        <td class="fw-bold">#TK-1048</td>
-                        <td>Carlos Ramos</td>
-                        <td>Configuración de impresora</td>
-                        <td><span class="badge bg-info text-dark">Baja (24h)</span></td>
-                        <td><span class="badge bg-warning text-dark">En Proceso</span></td>
-                        <td class="text-center"><a href="<?= base_url('/tickets/mis-tickets') ?>" class="btn btn-sm btn-primary fw-bold">Ir a Tickets</a></td>
-                    </tr>
+                    <?php if (!empty($misTickets)): ?>
+                        <?php foreach ($misTickets as $mt): ?>
+                        <tr>
+                            <td class="fw-bold">#<?= esc($mt['codigo_ticket'] ?? 'TK-' . $mt['id_ticket']) ?></td>
+                            <td><?= esc($mt['solicitante_nombre']) ?></td>
+                            <td><?= esc($mt['asunto']) ?></td>
+                            <td>
+                                <?php if ($mt['prioridad_nombre'] === 'Alta'): ?>
+                                    <span class="badge bg-danger">Alta (<?= formato_minutos((int)$mt['sla_minutos']) ?>)</span>
+                                <?php elseif ($mt['prioridad_nombre'] === 'Media'): ?>
+                                    <span class="badge bg-warning text-dark">Media (<?= formato_minutos((int)$mt['sla_minutos']) ?>)</span>
+                                <?php else: ?>
+                                    <span class="badge bg-info text-dark">Baja (<?= formato_minutos((int)$mt['sla_minutos']) ?>)</span>
+                                <?php endif; ?>
+                            </td>
+                            <td><span class="badge bg-warning text-dark"><?= esc($mt['estado_nombre']) ?></span></td>
+                            <td class="text-center">
+                                <a href="<?= base_url('/tickets/detalles/' . $mt['id_ticket']) ?>" class="btn btn-sm btn-primary fw-bold">Atender</a>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">No tienes tickets asignados en proceso en este momento.</td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>

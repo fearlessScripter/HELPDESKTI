@@ -359,74 +359,90 @@
 
 
                 <tbody>
+                    <?php if (!empty($tickets)): ?>
+                        <?php foreach ($tickets as $t): ?>
+                        <tr>
+                            <td class="fw-bold">
+                                <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="text-decoration-none">
+                                    #<?= esc($t['codigo_ticket'] ?? 'TK-' . $t['id_ticket']) ?>
+                                </a>
+                            </td>
+                            <td>
+                                <?= esc($t['solicitante_nombre']) ?>
+                            </td>
+                            <td>
+                                <?= esc($t['area_nombre']) ?>
+                            </td>
+                            <td>
+                                <?php if ($t['prioridad_nombre'] === 'Alta'): ?>
+                                    <span class="badge bg-danger">Alta (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
+                                <?php elseif ($t['prioridad_nombre'] === 'Media'): ?>
+                                    <span class="badge bg-warning text-dark">Media (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
+                                <?php else: ?>
+                                    <span class="badge bg-info text-dark">Baja (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-outline-secondary" title="Ver Detalles">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <?php if ($rol === 'Administrador'): ?>
+                                    <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalAsignar<?= $t['id_ticket'] ?>">
+                                        <i class="bi bi-person-check me-1"></i> Asignar Técnico
+                                    </button>
+                                    <?php endif; ?>
+                                </div>
 
-
-                    <!-- Ticket TK-1042 -->
-
-                    <tr>
-
-                        <td class="fw-bold">
-                            #TK-1042
-                        </td>
-
-                        <td>
-                            Alejandro Silva
-                        </td>
-
-                        <td>
-                            Redes y Conectividad
-                        </td>
-
-                        <td>
-
-                            <span class="badge bg-danger">
-
-                                Alta (2h)
-
-                            </span>
-
-                        </td>
-
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-success fw-bold" onclick="alert('Simulación: Abriendo modal para asignar técnico')">Asignar Técnico</button>
-                        </td>
-
-                    </tr>
-
-
-                    <!-- Ticket TK-1043 -->
-
-                    <tr>
-
-                        <td class="fw-bold">
-                            #TK-1043
-                        </td>
-
-                        <td>
-                            Beatriz Fuentes
-                        </td>
-
-                        <td>
-                            Sistemas ERP
-                        </td>
-
-                        <td>
-
-                            <span class="badge bg-warning text-dark">
-
-                                Media (4h)
-
-                            </span>
-
-                        </td>
-
-                        <td class="text-center">
-                            <button class="btn btn-sm btn-success fw-bold" onclick="alert('Simulación: Abriendo modal para asignar técnico')">Asignar Técnico</button>
-                        </td>
-
-                    </tr>
-
-
+                                <!-- Modal Asignar Técnico -->
+                                <?php if ($rol === 'Administrador'): ?>
+                                <div class="modal fade" id="modalAsignar<?= $t['id_ticket'] ?>" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog text-start">
+                                        <div class="modal-content">
+                                            <form action="<?= base_url('/tickets/asignar') ?>" method="post">
+                                                <?= csrf_field() ?>
+                                                <input type="hidden" name="id_ticket" value="<?= $t['id_ticket'] ?>">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title fw-bold">Asignar Técnico a #<?= esc($t['codigo_ticket']) ?></h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p class="mb-2"><strong>Asunto:</strong> <?= esc($t['asunto']) ?></p>
+                                                    <p class="text-muted small mb-3"><strong>Área:</strong> <?= esc($t['area_nombre']) ?> | <strong>Prioridad:</strong> <?= esc($t['prioridad_nombre']) ?></p>
+                                                    
+                                                    <label class="form-label fw-bold">Seleccionar Técnico Encargado <span class="text-danger">*</span></label>
+                                                    <select class="form-select" name="id_tecnico" required>
+                                                        <option value="" selected disabled>Selecciona un técnico...</option>
+                                                        <?php if (!empty($tecnicos)): ?>
+                                                            <?php foreach ($tecnicos as $tec): ?>
+                                                                <option value="<?= esc($tec['id_usuario']) ?>">
+                                                                    <?= esc($tec['nombre_completo']) ?> (<?= esc($tec['area'] ?? 'Soporte TI') ?>)
+                                                                </option>
+                                                            <?php endforeach; ?>
+                                                        <?php endif; ?>
+                                                    </select>
+                                                    <div class="form-text">Al asignar, el ticket pasará inmediatamente al estado <strong>En Proceso</strong>.</div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-success fw-bold">Confirmar Asignación</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                No hay tickets pendientes en la cola en este momento.
+                            </td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
 
             </table>
