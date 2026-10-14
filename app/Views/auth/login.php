@@ -58,6 +58,10 @@
         .btn-ver-clave { border-color: var(--bs-border-color); border-left: 0; color: var(--bs-secondary-color); background-color: var(--bs-body-bg); }
         .btn-ver-clave:hover { color: var(--bs-body-color); background-color: var(--bs-body-bg); border-color: var(--bs-border-color); }
         .login-card .password-input { border-right: 0; }
+        /* Microsoft Edge agrega su propio ojo (y una "X") a los campos de contraseña:
+           se ocultan para que solo exista nuestro botón de la derecha */
+        .password-input::-ms-reveal,
+        .password-input::-ms-clear { display: none; }
 
         [data-bs-theme="dark"] .login-marca { background-color: #0f1114; border-right: 1px solid #23272c; }
         [data-bs-theme="dark"] .login-card { box-shadow: 0 0 0 1px rgba(255, 255, 255, .07) !important; }

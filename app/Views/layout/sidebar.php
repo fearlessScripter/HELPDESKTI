@@ -81,6 +81,10 @@ $active = $active ?? 'inicio';
 </div>
 
 <style>
+    /* Capa propia para el menú lateral: sin esto, el contenido con position (ej. las .card de Bootstrap)
+       se dibuja encima y tapa el panel "Acerca de", que sobresale hacia la derecha.
+       1030 = nivel de barras fijas de Bootstrap: queda bajo modales (1050+) y sus fondos. */
+    .sidebar { z-index: 1030; }
     .sidebar-acerca { position: absolute; left: 15px; bottom: 20px; }
     .btn-acerca {
         width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
