@@ -18,6 +18,7 @@ class UsuarioModel extends Model
         'correo',
         'password_hash',
         'estado',
+        'tema',
         'fecha_creacion',
     ];
 

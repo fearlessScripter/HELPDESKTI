@@ -76,7 +76,8 @@ if (!isset($notificaciones)) {
 
         <!-- Usuario -->
         <div class="dropdown">
-            <button class="user-button dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <!-- auto-close="outside": al elegir el tono el menú sigue abierto para ver el cambio -->
+            <button class="user-button dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside">
                 <div class="text-end">
                     <div class="user-name">
                         <?= esc($nombre) ?>
@@ -88,12 +89,27 @@ if (!isset($notificaciones)) {
                 <i class="bi bi-person-circle fs-3 text-secondary"></i>
             </button>
 
-            <ul class="dropdown-menu dropdown-menu-end shadow">
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="min-width: 240px;">
                 <li>
                     <span class="dropdown-item-text">
                         <strong><?= esc($nombre) ?></strong><br>
                         <small class="text-muted"><?= esc($rol) ?></small>
                     </span>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="px-3 py-1">
+                    <?php $tono = tema_actual(); ?>
+                    <div class="small text-muted mb-2"><i class="bi bi-circle-half me-1"></i> Tono</div>
+                    <div class="btn-group btn-group-sm w-100 selector-tono" role="group" aria-label="Tono de la interfaz">
+                        <button type="button" class="btn btn-outline-secondary <?= $tono === 'claro' ? 'active' : '' ?>"
+                                data-tema="claro" aria-pressed="<?= $tono === 'claro' ? 'true' : 'false' ?>">
+                            <i class="bi bi-sun me-1"></i> Claro
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary <?= $tono === 'oscuro' ? 'active' : '' ?>"
+                                data-tema="oscuro" aria-pressed="<?= $tono === 'oscuro' ? 'true' : 'false' ?>">
+                            <i class="bi bi-moon-stars me-1"></i> Oscuro
+                        </button>
+                    </div>
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <li>

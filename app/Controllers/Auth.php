@@ -36,6 +36,7 @@ class Auth extends BaseController
                 'rol'             => $usuario['rol'], // 'Administrador', 'Técnico', 'Solicitante'
                 'id_rol'          => (int)$usuario['id_rol'],
                 'area'            => $usuario['area'] ?? null,
+                'tema'            => $usuario['tema'] ?? 'claro',
                 'isLoggedIn'      => true,
             ];
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="<?= tema_bootstrap() ?>">
 
 <head>
 
@@ -143,6 +143,10 @@
         }
 
     </style>
+
+
+    <?= view('layout/tema') ?>
+
 
 </head>
 

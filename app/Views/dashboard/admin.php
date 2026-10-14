@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="<?= tema_bootstrap() ?>">
 
 <head>
     <meta charset="UTF-8">
@@ -34,6 +34,7 @@
         .ticket-table { background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .ticket-table th { font-size: 13px; color: #6c757d; font-weight: 600; }
     </style>
+    <?= view('layout/tema') ?>
 </head>
 
 <body>

@@ -36,6 +36,9 @@ $routes->get('/base-conocimientos', 'BaseConocimientos::index');
 $routes->post('/base-conocimientos/crear', 'BaseConocimientos::crear');
 $routes->post('/base-conocimientos/actualizar', 'BaseConocimientos::actualizar');
 
+// Perfil (preferencias del usuario conectado)
+$routes->post('/perfil/tema', 'Perfil::tema');
+
 // Notificaciones
 $routes->get('/notificaciones/leer/(:num)', 'Notificaciones::leer/$1');
 $routes->post('/notificaciones/leer-todas', 'Notificaciones::leerTodas');

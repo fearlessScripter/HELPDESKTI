@@ -40,7 +40,7 @@ $maxArea      = max(1, ...array_column($porArea, 'total') ?: [1]);
 $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="<?= tema_bootstrap() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -82,6 +82,7 @@ $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
             a { text-decoration: none; color: inherit; }
         }
     </style>
+    <?= view('layout/tema') ?>
 </head>
 <body>
 

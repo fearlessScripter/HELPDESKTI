@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="<?= tema_bootstrap() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -100,6 +100,9 @@
             padding: 30px;
         }
     </style>
+
+    <?= view('layout/tema') ?>
+
 </head>
 <body>
 
