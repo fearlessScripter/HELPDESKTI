@@ -49,4 +49,23 @@ abstract class BaseController extends Controller
         // Preload any models, libraries, etc, here.
         // $this->session = service('session');
     }
+
+    /**
+     * Lee una fecha Y-m-d desde la URL (filtros). Devuelve '' si no es válida.
+     */
+    protected function fechaGet(string $clave): string
+    {
+        $valor = trim((string)$this->request->getGet($clave));
+        $fecha = \DateTime::createFromFormat('Y-m-d', $valor);
+        return ($fecha && $fecha->format('Y-m-d') === $valor) ? $valor : '';
+    }
+
+    /**
+     * Cantidad de registros por página elegida en la URL (10, 25 o 50).
+     */
+    protected function porPaginaGet(): int
+    {
+        $n = (int)$this->request->getGet('por_pagina');
+        return in_array($n, [10, 25, 50], true) ? $n : 10;
+    }
 }

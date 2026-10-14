@@ -21,7 +21,8 @@
         .user-name { font-weight: 600; }
         .user-role { font-size: 13px; color: #6c757d; }
         .content { padding: 30px; }
-        .ticket-table { background-color: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        /* overflow visible para que el menú de Acciones no quede recortado en las últimas filas */
+        .ticket-table { background-color: white; border-radius: 10px; overflow: visible; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .ticket-table table { margin-bottom: 0; }
         .ticket-table th { font-size: 13px; color: #6c757d; font-weight: 600; }
         .ticket-table td { vertical-align: middle; }
@@ -35,11 +36,55 @@
     <?= view('layout/topbar', ['pageTitle' => 'Gestión de Accesos']) ?>
 
     <div class="content">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="input-group" style="max-width: 450px;">
-                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                <input type="text" class="form-control" placeholder="Buscar por nombre o correo...">
+        <?php $hayFiltros = $filtros['q'] !== '' || $filtros['id_rol'] || $filtros['id_area'] !== '' || $filtros['estado'] !== ''; ?>
+        <form id="filtrosForm" method="get" action="<?= current_url() ?>" class="card card-body border-0 shadow-sm mb-4">
+            <input type="hidden" name="por_pagina" value="<?= esc($filtros['por_pagina']) ?>">
+            <div class="row g-2 align-items-end">
+                <div class="col-lg-4 col-md-6">
+                    <label class="form-label small fw-semibold text-muted mb-1">Buscar</label>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <input type="search" name="q" value="<?= esc($filtros['q']) ?>" class="form-control" placeholder="Nombre o correo...">
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label small fw-semibold text-muted mb-1">Rol</label>
+                    <select name="id_rol" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <?php foreach ([1 => 'Administrador', 2 => 'Técnico', 3 => 'Solicitante'] as $idR => $nomR): ?>
+                            <option value="<?= $idR ?>" <?= $filtros['id_rol'] === $idR ? 'selected' : '' ?>><?= $nomR ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label small fw-semibold text-muted mb-1">Área</label>
+                    <select name="id_area" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        <option value="sin" <?= $filtros['id_area'] === 'sin' ? 'selected' : '' ?>>Sin área</option>
+                        <?php foreach ($areas ?? [] as $a): ?>
+                            <option value="<?= esc($a['id_area']) ?>" <?= $filtros['id_area'] === (string)$a['id_area'] ? 'selected' : '' ?>><?= esc($a['nombre']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <label class="form-label small fw-semibold text-muted mb-1">Estado</label>
+                    <select name="estado" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <option value="activo" <?= $filtros['estado'] === 'activo' ? 'selected' : '' ?>>Activo</option>
+                        <option value="inactivo" <?= $filtros['estado'] === 'inactivo' ? 'selected' : '' ?>>Inactivo</option>
+                    </select>
+                </div>
+                <div class="col-lg-2 col-md-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm fw-semibold flex-fill"><i class="bi bi-funnel-fill"></i> Filtrar</button>
+                    <?php if ($hayFiltros): ?>
+                        <a href="<?= current_url() ?>" class="btn btn-light btn-sm" title="Limpiar filtros"><i class="bi bi-x-circle"></i></a>
+                    <?php endif; ?>
+                </div>
             </div>
+        </form>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-semibold mb-0">Usuarios del sistema</h5>
             <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#nuevoUsuarioModal">
                 <i class="bi bi-person-plus me-1"></i> Nuevo Usuario
             </button>
@@ -79,17 +124,62 @@
                                 </span>
                             </td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-outline-secondary" title="Usuario activo"><i class="bi bi-shield-check"></i></button>
+                                <?php
+                                    $esYo   = (int)$u['id_usuario'] === (int)$id_usuario;
+                                    $activo = $u['estado'] === 'activo';
+                                    $datos  = 'data-id="' . esc($u['id_usuario']) . '" data-nombre="' . esc($u['nombre_completo']) . '"';
+                                ?>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-gear"></i> Acciones
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                        <li>
+                                            <button type="button" class="dropdown-item btn-editar" <?= $datos ?>
+                                                    data-correo="<?= esc($u['correo']) ?>" data-rol="<?= esc($u['id_rol']) ?>"
+                                                    data-area="<?= esc($u['id_area'] ?? '') ?>" data-yo="<?= $esYo ? '1' : '0' ?>"
+                                                    data-bs-toggle="modal" data-bs-target="#editarUsuarioModal">
+                                                <i class="bi bi-pencil me-2 text-primary"></i> Editar datos
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <button type="button" class="dropdown-item btn-password" <?= $datos ?>
+                                                    data-bs-toggle="modal" data-bs-target="#passwordUsuarioModal">
+                                                <i class="bi bi-key me-2 text-warning"></i> Restablecer contraseña
+                                            </button>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <?php if ($esYo): ?>
+                                                <span class="dropdown-item text-muted small" title="No puedes deshabilitar tu propia cuenta">
+                                                    <i class="bi bi-lock me-2"></i> Tu cuenta (no se puede deshabilitar)
+                                                </span>
+                                            <?php else: ?>
+                                                <button type="button" class="dropdown-item btn-estado <?= $activo ? 'text-danger' : 'text-success' ?>" <?= $datos ?>
+                                                        data-activo="<?= $activo ? '1' : '0' ?>"
+                                                        data-bs-toggle="modal" data-bs-target="#estadoUsuarioModal">
+                                                    <?php if ($activo): ?>
+                                                        <i class="bi bi-person-x me-2"></i> Deshabilitar usuario
+                                                    <?php else: ?>
+                                                        <i class="bi bi-person-check me-2"></i> Habilitar usuario
+                                                    <?php endif; ?>
+                                                </button>
+                                            <?php endif; ?>
+                                        </li>
+                                    </ul>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">No se encontraron usuarios registrados.</td>
+                            <td colspan="6" class="text-center py-4 text-muted">No se encontraron usuarios con los filtros aplicados.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
+
+            <?= view('layout/paginacion') ?>
         </div>
     </div>
 </div>
@@ -147,7 +237,164 @@
     </div>
 </div>
 
+<!-- Modal Editar Usuario -->
+<div class="modal fade" id="editarUsuarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <form action="<?= base_url('/usuarios/actualizar') ?>" method="post">
+                <?= csrf_field() ?>
+                <input type="hidden" name="id_usuario" id="editId">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold">Editar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="editNombre" class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="editNombre" name="nombre_completo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCorreo" class="form-label fw-semibold">Correo Electrónico <span class="text-danger">*</span></label>
+                        <input type="email" class="form-control" id="editCorreo" name="correo" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRol" class="form-label fw-semibold">Rol del Sistema <span class="text-danger">*</span></label>
+                        <select class="form-select" id="editRol" name="id_rol" required>
+                            <option value="1">Administrador</option>
+                            <option value="2">Técnico</option>
+                            <option value="3">Solicitante</option>
+                        </select>
+                        <div class="form-text d-none" id="editRolAviso">No puedes cambiar tu propio rol.</div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="editArea" class="form-label fw-semibold">Área / Departamento</label>
+                        <select class="form-select" id="editArea" name="id_area">
+                            <option value="">Sin área específica</option>
+                            <?php foreach ($areas ?? [] as $a): ?>
+                                <option value="<?= esc($a['id_area']) ?>"><?= esc($a['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Restablecer Contraseña -->
+<div class="modal fade" id="passwordUsuarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <form action="<?= base_url('/usuarios/password') ?>" method="post" id="formPassword">
+                <?= csrf_field() ?>
+                <input type="hidden" name="id_usuario" id="passId">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold">Restablecer Contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small">Asigna una nueva contraseña a <strong id="passNombre"></strong>. Comunícasela al usuario por un medio seguro.</p>
+                    <div class="mb-3">
+                        <label for="passNueva" class="form-label fw-semibold">Nueva contraseña <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="passNueva" name="password" minlength="6" required>
+                        <div class="form-text">Mínimo 6 caracteres.</div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="passConfirmar" class="form-label fw-semibold">Confirmar contraseña <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="passConfirmar" name="password_confirmar" minlength="6" required>
+                        <div class="invalid-feedback">Las contraseñas no coinciden.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning fw-bold">Restablecer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Habilitar / Deshabilitar -->
+<div class="modal fade" id="estadoUsuarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <form action="<?= base_url('/usuarios/estado') ?>" method="post">
+                <?= csrf_field() ?>
+                <input type="hidden" name="id_usuario" id="estadoId">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold" id="estadoTitulo">Deshabilitar Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4" id="estadoTexto"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn fw-bold" id="estadoBoton">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Make sure jQuery is available for the simulation if needed, or stick to vanilla alert -->
+<script>
+// Rellena los modales de acciones con los datos del usuario seleccionado
+document.querySelectorAll('.btn-editar').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var esYo = btn.dataset.yo === '1';
+        document.getElementById('editId').value = btn.dataset.id;
+        document.getElementById('editNombre').value = btn.dataset.nombre;
+        document.getElementById('editCorreo').value = btn.dataset.correo;
+        document.getElementById('editRol').value = btn.dataset.rol;
+        document.getElementById('editArea').value = btn.dataset.area;
+        // Un select deshabilitado no se envía, así que se bloquea con estilo + aviso y el servidor lo valida
+        document.getElementById('editRol').style.pointerEvents = esYo ? 'none' : '';
+        document.getElementById('editRol').classList.toggle('bg-light', esYo);
+        document.getElementById('editRolAviso').classList.toggle('d-none', !esYo);
+    });
+});
+
+document.querySelectorAll('.btn-password').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        document.getElementById('formPassword').reset();
+        document.getElementById('passConfirmar').classList.remove('is-invalid');
+        document.getElementById('passId').value = btn.dataset.id;
+        document.getElementById('passNombre').textContent = btn.dataset.nombre;
+    });
+});
+
+document.getElementById('formPassword').addEventListener('submit', function (e) {
+    var confirmar = document.getElementById('passConfirmar');
+    if (document.getElementById('passNueva').value !== confirmar.value) {
+        e.preventDefault();
+        confirmar.classList.add('is-invalid');
+    }
+});
+
+document.querySelectorAll('.btn-estado').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var activo = btn.dataset.activo === '1';
+        var nombre = document.createElement('strong');
+        nombre.textContent = btn.dataset.nombre;
+        document.getElementById('estadoId').value = btn.dataset.id;
+        document.getElementById('estadoTitulo').textContent = activo ? 'Deshabilitar Usuario' : 'Habilitar Usuario';
+        var texto = document.getElementById('estadoTexto');
+        texto.innerHTML = '';
+        texto.append(activo ? '¿Deseas deshabilitar a ' : '¿Deseas habilitar nuevamente a ', nombre, '?');
+        var detalle = document.createElement('p');
+        detalle.className = 'text-muted small mt-2 mb-0';
+        detalle.textContent = activo
+            ? 'El usuario no podrá iniciar sesión hasta que lo vuelvas a habilitar. Sus tickets e historial se conservan.'
+            : 'El usuario podrá volver a iniciar sesión con su contraseña actual.';
+        texto.append(detalle);
+        var boton = document.getElementById('estadoBoton');
+        boton.textContent = activo ? 'Deshabilitar' : 'Habilitar';
+        boton.className = 'btn fw-bold ' + (activo ? 'btn-danger' : 'btn-success');
+    });
+});
+</script>
 </body>
 </html>

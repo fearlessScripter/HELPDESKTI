@@ -118,42 +118,101 @@ class TicketModel extends Model
     }
 
     /**
-     * Tickets en cola (Pendientes y sin asignar)
+     * Opciones de orden disponibles en los listados (clave => [etiqueta, columnas]).
      */
-    public function getColaPendientes()
+    public const ORDENES = [
+        'recientes' => ['Más recientes primero', [['tickets.fecha_creacion', 'DESC']]],
+        'antiguos'  => ['Más antiguos primero', [['tickets.fecha_creacion', 'ASC']]],
+        'prioridad' => ['Mayor prioridad primero', [['tickets.id_prioridad', 'DESC'], ['tickets.fecha_creacion', 'ASC']]],
+        'sla'       => ['Próximos a vencer (SLA)', [['tickets.fecha_vencimiento_sla', 'ASC']]],
+    ];
+
+    /**
+     * Tickets en cola (Pendientes y sin asignar). Devuelve la consulta para filtrar/paginar.
+     */
+    public function queryCola()
     {
         return $this->getTicketsQuery()
                     ->where('tickets.id_estado', 1) // Pendiente
-                    ->where('tickets.id_tecnico_asignado IS NULL')
-                    ->orderBy('tickets.id_prioridad', 'DESC')
-                    ->orderBy('tickets.fecha_creacion', 'ASC')
-                    ->findAll();
+                    ->where('tickets.id_tecnico_asignado IS NULL');
     }
 
     /**
-     * Mis tickets según usuario y rol
+     * Mis tickets según usuario y rol:
+     * Solicitante y Administrador -> los que creó; Técnico -> los que tiene asignados.
      */
-    public function getMisTickets(int $idUsuario, string $rol)
+    public function queryMisTickets(int $idUsuario, string $rol)
     {
         $query = $this->getTicketsQuery();
-        if ($rol === 'Solicitante') {
-            $query->where('tickets.id_solicitante', $idUsuario);
-        } elseif ($rol === 'Técnico') {
+        if ($rol === 'Técnico') {
             $query->where('tickets.id_tecnico_asignado', $idUsuario);
+        } else {
+            $query->where('tickets.id_solicitante', $idUsuario);
         }
-        return $query->orderBy('tickets.fecha_creacion', 'DESC')->findAll();
+        return $query;
     }
 
     /**
-     * Tickets asignados (En Proceso)
+     * Tickets asignados (En Proceso), opcionalmente de un técnico.
      */
-    public function getAsignados(?int $idTecnico = null)
+    public function queryAsignados(?int $idTecnico = null)
     {
         $query = $this->getTicketsQuery()->where('tickets.id_estado', 2); // En Proceso
         if ($idTecnico !== null) {
             $query->where('tickets.id_tecnico_asignado', $idTecnico);
         }
-        return $query->orderBy('tickets.fecha_asignacion', 'DESC')->findAll();
+        return $query;
+    }
+
+    /**
+     * Aplica los filtros de búsqueda y el orden sobre la consulta actual.
+     *
+     * @param array  $f            Filtros normalizados (ver Tickets::leerFiltros)
+     * @param string $ordenDefecto Clave de ORDENES a usar si no viene ninguna
+     */
+    public function aplicarFiltros(array $f, string $ordenDefecto = 'recientes')
+    {
+        if (!empty($f['q'])) {
+            $this->groupStart()
+                 ->like('tickets.codigo_ticket', $f['q'])
+                 ->orLike('tickets.asunto', $f['q'])
+                 ->orLike('tickets.descripcion', $f['q'])
+                 ->orLike('sol.nombre_completo', $f['q'])
+                 ->groupEnd();
+        }
+        if (!empty($f['id_estado'])) {
+            $this->where('tickets.id_estado', $f['id_estado']);
+        }
+        if (!empty($f['id_area'])) {
+            $this->where('tickets.id_area_afectada', $f['id_area']);
+        }
+        if (!empty($f['id_prioridad'])) {
+            $this->where('tickets.id_prioridad', $f['id_prioridad']);
+        }
+        if ($f['id_tecnico'] === 'sin') {
+            $this->where('tickets.id_tecnico_asignado IS NULL');
+        } elseif (!empty($f['id_tecnico'])) {
+            $this->where('tickets.id_tecnico_asignado', (int)$f['id_tecnico']);
+        }
+        if (!empty($f['sla'])) {
+            $ahora = date('Y-m-d H:i:s');
+            $this->where('tickets.fecha_resolucion IS NULL')
+                 ->where('tickets.fecha_vencimiento_sla ' . ($f['sla'] === 'vencido' ? '<' : '>='), $ahora);
+        }
+        if (!empty($f['desde'])) {
+            $this->where('tickets.fecha_creacion >=', $f['desde'] . ' 00:00:00');
+        }
+        if (!empty($f['hasta'])) {
+            $this->where('tickets.fecha_creacion <=', $f['hasta'] . ' 23:59:59');
+        }
+
+        $orden = self::ORDENES[$f['orden'] ?? ''] ?? self::ORDENES[$ordenDefecto];
+        foreach ($orden[1] as [$columna, $direccion]) {
+            $this->orderBy($columna, $direccion);
+        }
+        $this->orderBy('tickets.id_ticket', 'DESC'); // desempate estable para la paginación
+
+        return $this;
     }
 
     /**

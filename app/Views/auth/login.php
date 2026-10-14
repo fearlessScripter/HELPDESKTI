@@ -27,9 +27,13 @@
                                 <label class="form-label fw-semibold">Correo Electrónico</label>
                                 <input type="email" class="form-control" name="correo" required placeholder="usuario@empresa.com">
                             </div>
-                            <div class="mb-4">
+                            <div class="mb-2">
                                 <label class="form-label fw-semibold">Contraseña</label>
                                 <input type="password" class="form-control" name="password" required>
+                            </div>
+                            <div class="text-end mb-4">
+                                <!-- TODO: conectar con el flujo de recuperación de contraseña -->
+                                <a href="#" class="link-primary small fw-semibold text-decoration-none">¿Olvidaste tu contraseña?</a>
                             </div>
                             <button type="submit" class="btn btn-primary w-100 fw-bold py-2">Iniciar Sesión</button>
                         </form>

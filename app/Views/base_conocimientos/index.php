@@ -36,17 +36,70 @@
                 <div class="col-md-8 text-center">
                     <h2 class="fw-bold">Base de Conocimientos</h2>
                     <p class="text-muted">Encuentra soluciones rápidas a problemas comunes (Procedimientos Estándar de Operación).</p>
-                    <div class="input-group mt-3 shadow-sm">
-                        <input type="text" class="form-control form-control-lg" placeholder="Buscar por error, software o hardware...">
-                        <button class="btn btn-primary px-4" type="button">Buscar</button>
-                    </div>
+                </div>
+            </div>
+
+            <?php $hayFiltrosAvanzados = $filtros['id_autor'] || $filtros['origen'] !== '' || $filtros['desde'] || $filtros['hasta']; ?>
+            <div class="row justify-content-center mb-4">
+                <div class="col-md-8">
+                    <form id="filtrosForm" method="get" action="<?= current_url() ?>">
+                        <input type="hidden" name="por_pagina" value="<?= esc($filtros['por_pagina']) ?>">
+                        <div class="input-group shadow-sm">
+                            <input type="search" name="q" value="<?= esc($filtros['q']) ?>" class="form-control form-control-lg" placeholder="Buscar por error, software, hardware, código SOL o ticket...">
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosKb" title="Filtros avanzados">
+                                <i class="bi bi-sliders"></i>
+                            </button>
+                            <button class="btn btn-primary px-4" type="submit">Buscar</button>
+                        </div>
+
+                        <div class="collapse <?= $hayFiltrosAvanzados ? 'show' : '' ?>" id="filtrosKb">
+                            <div class="card card-body border-0 shadow-sm mt-2">
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Autor</label>
+                                        <select name="id_autor" class="form-select form-select-sm">
+                                            <option value="">Todos</option>
+                                            <?php foreach ($autores ?? [] as $au): ?>
+                                                <option value="<?= esc($au['id_usuario']) ?>" <?= $filtros['id_autor'] === (int)$au['id_usuario'] ? 'selected' : '' ?>><?= esc($au['nombre_completo']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Origen</label>
+                                        <select name="origen" class="form-select form-select-sm">
+                                            <option value="">Todos</option>
+                                            <option value="ticket" <?= $filtros['origen'] === 'ticket' ? 'selected' : '' ?>>Desde un ticket cerrado</option>
+                                            <option value="manual" <?= $filtros['origen'] === 'manual' ? 'selected' : '' ?>>Documentación manual</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label class="form-label small fw-semibold text-muted mb-1">Fecha de creación</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="date" name="desde" value="<?= esc($filtros['desde']) ?>" class="form-control" title="Desde">
+                                            <span class="input-group-text">a</span>
+                                            <input type="date" name="hasta" value="<?= esc($filtros['hasta']) ?>" class="form-control" title="Hasta">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-end gap-2 mt-2">
+                                    <a href="<?= current_url() ?>" class="btn btn-light btn-sm fw-semibold">Limpiar</a>
+                                    <button type="submit" class="btn btn-primary btn-sm fw-semibold">Aplicar filtros</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
 
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted small">Mostrando <?= count($articulos ?? []) ?> soluciones documentadas</span>
+                        <span class="text-muted small">
+                            <?= $pager->getTotal() ?> solución(es) encontradas
+                            <?php if ($filtros['q'] !== '' || $hayFiltrosAvanzados): ?>
+                                · <a href="<?= current_url() ?>" class="text-decoration-none">ver todas</a>
+                            <?php endif; ?>
+                        </span>
                         <button class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#nuevaSolucionModal">
                             <i class="bi bi-plus-lg me-1"></i> Nueva Solución
                         </button>
@@ -97,9 +150,15 @@
                             <?php endforeach; ?>
                         <?php else: ?>
                             <div class="alert alert-light text-center py-4 text-muted">
-                                No hay artículos documentados todavía. ¡Crea el primero!
+                                <?= ($filtros['q'] !== '' || $hayFiltrosAvanzados)
+                                    ? 'No se encontraron soluciones con esos criterios de búsqueda.'
+                                    : 'No hay artículos documentados todavía. ¡Crea el primero!' ?>
                             </div>
                         <?php endif; ?>
+                    </div>
+
+                    <div class="card border-0 shadow-sm mt-3 overflow-hidden">
+                        <?= view('layout/paginacion') ?>
                     </div>
                 </div>
             </div>

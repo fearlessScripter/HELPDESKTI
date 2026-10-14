@@ -88,7 +88,12 @@
             </div>
         </div>
 
-        <h4 class="mb-3 fw-semibold">Mis Tickets Asignados En Proceso</h4>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0 fw-semibold">Mis Tickets En Proceso <small class="text-muted fs-6 fw-normal">(los 5 más próximos a vencer)</small></h4>
+            <a href="<?= base_url('/tickets/mis-tickets') ?>" class="btn btn-sm btn-outline-primary fw-semibold">
+                Ver todos <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
         <div class="ticket-table">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">

@@ -23,13 +23,27 @@ class BaseConocimientos extends BaseController
         if (!in_array($session->get('rol'), ['Administrador', 'Técnico'])) return redirect()->to('/dashboard');
 
         $idUsuario = (int)$session->get('id_usuario');
-        $articulos = $this->kbModel->getArticulosConAutor();
+
+        $origen  = (string)$this->request->getGet('origen');
+        $filtros = [
+            'q'          => trim((string)$this->request->getGet('q')),
+            'id_autor'   => (int)$this->request->getGet('id_autor'),
+            'origen'     => in_array($origen, ['ticket', 'manual'], true) ? $origen : '',
+            'desde'      => $this->fechaGet('desde'),
+            'hasta'      => $this->fechaGet('hasta'),
+            'por_pagina' => $this->porPaginaGet(),
+        ];
+
+        $articulos = $this->kbModel->queryArticulos($filtros)->paginate($filtros['por_pagina']);
 
         $data = [
             'id_usuario'     => $idUsuario,
             'nombre'         => $session->get('nombre_completo'),
             'rol'            => $session->get('rol'),
             'articulos'      => $articulos,
+            'pager'          => $this->kbModel->pager,
+            'filtros'        => $filtros,
+            'autores'        => $this->kbModel->getAutores(),
             'notificaciones' => $this->notifModel->getPorUsuario($idUsuario, 5),
             'conteoNoLeidas' => $this->notifModel->getConteoNoLeidas($idUsuario),
         ];

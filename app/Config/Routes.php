@@ -43,4 +43,7 @@ $routes->post('/notificaciones/leer-todas', 'Notificaciones::leerTodas');
 // Usuarios y Reportes
 $routes->get('/usuarios', 'Usuarios::index');
 $routes->post('/usuarios/crear', 'Usuarios::crear');
+$routes->post('/usuarios/actualizar', 'Usuarios::actualizar');
+$routes->post('/usuarios/estado', 'Usuarios::cambiarEstado');
+$routes->post('/usuarios/password', 'Usuarios::restablecerPassword');
 $routes->get('/reportes', 'Reportes::index');

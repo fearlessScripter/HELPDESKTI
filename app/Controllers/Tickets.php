@@ -8,6 +8,8 @@ use App\Models\AreaModel;
 use App\Models\HistorialTicketModel;
 use App\Models\NotificacionModel;
 use App\Models\BaseConocimientoModel;
+use App\Models\EstadoTicketModel;
+use App\Models\PrioridadModel;
 
 class Tickets extends BaseController
 {
@@ -49,6 +51,52 @@ class Tickets extends BaseController
             'notificaciones' => $notificaciones,
             'conteoNoLeidas' => $conteoNoLeidas,
         ];
+    }
+
+    /**
+     * Lee y normaliza los filtros de los listados de tickets desde la URL (GET).
+     */
+    private function leerFiltros(): array
+    {
+        $tecnico = (string)$this->request->getGet('id_tecnico');
+        $sla     = (string)$this->request->getGet('sla');
+        $orden   = (string)$this->request->getGet('orden');
+
+        $f = [
+            'q'            => trim((string)$this->request->getGet('q')),
+            'id_estado'    => (int)$this->request->getGet('id_estado'),
+            'id_area'      => (int)$this->request->getGet('id_area'),
+            'id_prioridad' => (int)$this->request->getGet('id_prioridad'),
+            'id_tecnico'   => $tecnico === 'sin' ? 'sin' : (int)$tecnico,
+            'sla'          => in_array($sla, ['vencido', 'en_plazo'], true) ? $sla : '',
+            'desde'        => $this->fechaGet('desde'),
+            'hasta'        => $this->fechaGet('hasta'),
+            'orden'        => array_key_exists($orden, TicketModel::ORDENES) ? $orden : '',
+            'por_pagina'   => $this->porPaginaGet(),
+        ];
+
+        // Si el rango viene invertido, se corrige
+        if ($f['desde'] && $f['hasta'] && $f['desde'] > $f['hasta']) {
+            [$f['desde'], $f['hasta']] = [$f['hasta'], $f['desde']];
+        }
+
+        return $f;
+    }
+
+    /**
+     * Ejecuta la consulta filtrada y paginada, y agrega los catálogos para el formulario de filtros.
+     */
+    private function prepararListado(array $data, $query, array $filtros, string $ordenDefecto): array
+    {
+        $data['tickets']      = $query->aplicarFiltros($filtros, $ordenDefecto)->paginate($filtros['por_pagina']);
+        $data['pager']        = $this->ticketModel->pager;
+        $data['filtros']      = $filtros;
+        $data['ordenDefecto'] = $ordenDefecto;
+        $data['areas']        = $this->areaModel->getActivas();
+        $data['estados']      = (new EstadoTicketModel())->findAll();
+        $data['prioridades']  = (new PrioridadModel())->orderBy('id_prioridad', 'DESC')->findAll();
+        $data['tecnicos']     = $this->usuarioModel->getTecnicos();
+        return $data;
     }
 
     public function nuevo()
@@ -132,8 +180,8 @@ class Tickets extends BaseController
         if (!$data) return redirect()->to('/auth');
         if (!in_array($data['rol'], ['Administrador', 'Técnico'])) return redirect()->to('/dashboard');
 
-        $data['tickets'] = $this->ticketModel->getTicketsQuery()->orderBy('tickets.fecha_creacion', 'DESC')->findAll();
-        $data['tecnicos'] = $this->usuarioModel->getTecnicos();
+        $query = $this->ticketModel->getTicketsQuery();
+        $data  = $this->prepararListado($data, $query, $this->leerFiltros(), 'recientes');
         return view('tickets/todos', $data);
     }
 
@@ -143,8 +191,7 @@ class Tickets extends BaseController
         if (!$data) return redirect()->to('/auth');
         if (!in_array($data['rol'], ['Administrador', 'Técnico'])) return redirect()->to('/dashboard');
 
-        $data['tickets'] = $this->ticketModel->getColaPendientes();
-        $data['tecnicos'] = $this->usuarioModel->getTecnicos();
+        $data = $this->prepararListado($data, $this->ticketModel->queryCola(), $this->leerFiltros(), 'prioridad');
         return view('tickets/cola', $data);
     }
 
@@ -153,7 +200,13 @@ class Tickets extends BaseController
         $data = $this->getSessionData();
         if (!$data) return redirect()->to('/auth');
 
-        $data['tickets'] = $this->ticketModel->getMisTickets($data['id_usuario'], $data['rol']);
+        $filtros = $this->leerFiltros();
+        if ($data['rol'] === 'Solicitante') {
+            $filtros['sla'] = ''; // el solicitante no trabaja con SLA
+        }
+
+        $query = $this->ticketModel->queryMisTickets($data['id_usuario'], $data['rol']);
+        $data  = $this->prepararListado($data, $query, $filtros, 'recientes');
         return view('tickets/mis_tickets', $data);
     }
 
@@ -164,8 +217,7 @@ class Tickets extends BaseController
         if (!in_array($data['rol'], ['Administrador', 'Técnico'])) return redirect()->to('/dashboard');
 
         $idTecnico = ($data['rol'] === 'Técnico') ? $data['id_usuario'] : null;
-        $data['tickets'] = $this->ticketModel->getAsignados($idTecnico);
-        $data['tecnicos'] = $this->usuarioModel->getTecnicos();
+        $data = $this->prepararListado($data, $this->ticketModel->queryAsignados($idTecnico), $this->leerFiltros(), 'sla');
         return view('tickets/asignados', $data);
     }
 

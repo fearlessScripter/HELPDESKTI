@@ -295,40 +295,8 @@
 
         <!-- BUSCADOR Y FILTROS -->
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <?= view('layout/filtros_tickets', $rol === 'Solicitante' ? ['campos' => ['estado', 'area', 'fechas'], 'ordenes' => ['recientes', 'antiguos']] : ['campos' => ['estado', 'area', 'prioridad', 'sla', 'fechas']]) ?>
 
-
-            <div class="input-group" style="max-width: 450px;">
-
-                <span class="input-group-text bg-white">
-
-                    <i class="bi bi-search"></i>
-
-                </span>
-
-                <input
-                    type="text"
-                    class="form-control"
-                    placeholder="Buscar tickets...">
-
-            </div>
-
-
-            <div class="d-flex gap-2">
-                <button
-                    class="btn btn-outline-secondary">
-                    <i class="bi bi-funnel"></i>
-                    Filtros
-                    <i class="bi bi-chevron-down"></i>
-                </button>
-                <?php if (isset($rol) && $rol !== 'Técnico'): ?>
-                <a href="<?= base_url('/tickets/nuevo') ?>" class="btn btn-primary fw-bold">
-                    <i class="bi bi-plus-lg me-1"></i> Nuevo Ticket
-                </a>
-                <?php endif; ?>
-            </div>
-
-        </div>
 
 
 
@@ -433,6 +401,9 @@
                 </tbody>
 
             </table>
+
+
+            <?= view('layout/paginacion') ?>
 
         </div>
 

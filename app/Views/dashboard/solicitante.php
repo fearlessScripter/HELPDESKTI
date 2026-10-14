@@ -241,6 +241,69 @@
             </a>
         </div>
 
+        <!-- Últimos tickets del solicitante (máx. 5) -->
+        <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
+            <h4 class="mb-0 fw-semibold">Mis Últimos Tickets</h4>
+            <a href="<?= base_url('/tickets/mis-tickets') ?>" class="btn btn-sm btn-outline-primary fw-semibold">
+                Ver todos <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+        <div class="card border-0 shadow-sm overflow-hidden">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="small text-muted">ID Ticket</th>
+                        <th class="small text-muted">Asunto</th>
+                        <th class="small text-muted">Área</th>
+                        <th class="small text-muted">Fecha</th>
+                        <th class="small text-muted">Estado</th>
+                        <th class="small text-muted text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($misTickets)): ?>
+                        <?php foreach ($misTickets as $t): ?>
+                        <tr>
+                            <td class="fw-bold">
+                                <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="text-decoration-none">#<?= esc($t['codigo_ticket']) ?></a>
+                            </td>
+                            <td><?= esc($t['asunto']) ?></td>
+                            <td class="small text-muted"><?= esc($t['area_nombre']) ?></td>
+                            <td class="small"><?= esc(date('d/m/Y H:i', strtotime($t['fecha_creacion']))) ?></td>
+                            <td>
+                                <?php if ($t['estado_nombre'] === 'Pendiente'): ?>
+                                    <span class="badge bg-danger">Pendiente</span>
+                                <?php elseif ($t['estado_nombre'] === 'En Proceso'): ?>
+                                    <span class="badge bg-warning text-dark">En Proceso</span>
+                                <?php elseif ($t['estado_nombre'] === 'Resuelto'): ?>
+                                    <span class="badge bg-success">Resuelto</span>
+                                <?php else: ?>
+                                    <span class="badge bg-secondary">Cerrado</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if ((int)$t['id_estado'] === 3): ?>
+                                    <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-sm btn-success fw-bold">
+                                        <i class="bi bi-check2-circle"></i> Confirmar Cierre
+                                    </a>
+                                <?php else: ?>
+                                    <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-sm btn-outline-secondary">Ver Detalles</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                Aún no has creado tickets. Usa el botón <strong>Crear Ticket</strong> para registrar tu primera solicitud.
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+
     </div>
 
 </div>

@@ -36,10 +36,16 @@ class Dashboard extends BaseController
         ];
 
         if ($rol === 'Solicitante') {
-            $data['misTickets'] = $ticketModel->getMisTickets($idUsuario, $rol);
+            // Últimos 5 tickets creados por el solicitante
+            $data['misTickets'] = $ticketModel->queryMisTickets($idUsuario, $rol)
+                                              ->orderBy('tickets.fecha_creacion', 'DESC')
+                                              ->findAll(5);
             return view('dashboard/solicitante', $data);
         } elseif ($rol === 'Técnico') {
-            $data['misTickets'] = $ticketModel->getAsignados($idUsuario);
+            // Los 5 tickets en proceso más próximos a vencer
+            $data['misTickets'] = $ticketModel->queryAsignados($idUsuario)
+                                              ->orderBy('tickets.fecha_vencimiento_sla', 'ASC')
+                                              ->findAll(5);
             return view('dashboard/tecnico', $data);
         } else {
             // Administrador
