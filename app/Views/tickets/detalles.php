@@ -56,7 +56,7 @@
                                 <?php endif; ?>
                             </div>
                             <p class="text-muted mb-0">
-                                <i class="bi bi-clock"></i> Creado el <?= esc($ticket['fecha_creacion']) ?> por <strong><?= esc($ticket['solicitante_nombre']) ?></strong>
+                                <i class="bi bi-clock"></i> Creado el <?= esc(fecha_texto($ticket['fecha_creacion'])) ?> por <strong><?= esc($ticket['solicitante_nombre']) ?></strong> (<?= esc($ticket['solicitante_rol']) ?>)
                             </p>
                         </div>
                         <div class="card-body p-4">
@@ -71,7 +71,12 @@
                                 <h6 class="fw-bold mb-2"><i class="bi bi-check-circle-fill me-2 text-success"></i>Solución Técnica Aplicada:</h6>
                                 <p class="mb-0 text-dark" style="white-space: pre-line;"><?= esc($ticket['solucion_aplicada']) ?></p>
                                 <?php if (!empty($ticket['fecha_resolucion'])): ?>
-                                <small class="text-muted d-block mt-2">Registrada el <?= esc($ticket['fecha_resolucion']) ?></small>
+                                <small class="text-muted d-block mt-2">
+                                    Registrada el <?= esc(fecha_texto($ticket['fecha_resolucion'])) ?>
+                                    <?php if (!empty($ticket['tecnico_nombre'])): ?>
+                                        por <?= esc(nombre_con_rol($ticket['tecnico_nombre'], 'Técnico')) ?>
+                                    <?php endif; ?>
+                                </small>
                                 <?php endif; ?>
                             </div>
                             <?php endif; ?>
@@ -90,10 +95,10 @@
                                     <div class="timeline-item">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <strong><?= esc($h['accion']) ?></strong>
-                                            <small class="text-muted"><?= esc($h['fecha_registro']) ?></small>
+                                            <small class="text-muted"><?= esc(fecha_hora($h['fecha_registro'])) ?></small>
                                         </div>
                                         <p class="mb-1 text-secondary small"><?= esc($h['descripcion']) ?></p>
-                                        <small class="text-muted">Por: <?= esc($h['usuario_nombre']) ?> (<?= esc($h['usuario_rol']) ?>)</small>
+                                        <small class="text-muted">Por: <?= esc(nombre_con_rol($h['usuario_nombre'], $h['usuario_rol'])) ?></small>
                                     </div>
                                     <?php endforeach; ?>
                                 </div>
@@ -115,20 +120,14 @@
                                 <li class="mb-2"><strong>Impacto / Urgencia:</strong> <?= ucfirst(esc($ticket['nivel_impacto'])) ?> / <?= ucfirst(esc($ticket['nivel_urgencia'])) ?></li>
                                 <?php $verSla = ($rol !== 'Solicitante'); // El solicitante no ve información de SLA ?>
                                 <li class="mb-2"><strong>Prioridad:</strong>
-                                    <?php $slaTexto = $verSla && !empty($ticket['sla_minutos']) ? ' (SLA ' . formato_minutos((int)$ticket['sla_minutos']) . ')' : ''; ?>
-                                    <?php if ($ticket['prioridad_nombre'] === 'Alta'): ?>
-                                        <span class="badge bg-danger">Alta<?= esc($slaTexto) ?></span>
-                                    <?php elseif ($ticket['prioridad_nombre'] === 'Media'): ?>
-                                        <span class="badge bg-warning text-dark">Media<?= esc($slaTexto) ?></span>
-                                    <?php else: ?>
-                                        <span class="badge bg-info text-dark">Baja<?= esc($slaTexto) ?></span>
-                                    <?php endif; ?>
+                                    <?php // El solicitante ve la prioridad (con su color) pero no el plazo SLA ?>
+                                    <?= badge_prioridad($ticket['prioridad_nombre'], $verSla ? (int)$ticket['sla_minutos'] : null, 'SLA ') ?>
                                 </li>
                                 <li class="mb-2"><strong>Técnico Asignado:</strong>
                                     <?= !empty($ticket['tecnico_nombre']) ? esc($ticket['tecnico_nombre']) : '<span class="text-danger fw-semibold">Sin asignar (En cola)</span>' ?>
                                 </li>
                                 <?php if ($verSla && !empty($ticket['fecha_vencimiento_sla'])): ?>
-                                <li class="mb-2"><strong>Vencimiento SLA:</strong> <?= esc(date('d/m/Y H:i', strtotime($ticket['fecha_vencimiento_sla']))) ?></li>
+                                <li class="mb-2"><strong>Vencimiento SLA:</strong> <?= esc(fecha_hora($ticket['fecha_vencimiento_sla'])) ?></li>
                                 <?php endif; ?>
                             </ul>
 
@@ -176,11 +175,24 @@
                         </div>
                     </div>
 
-                    <!-- ACCIÓN: Formulario de Solución (Técnico asignado o Admin cuando el ticket está En Proceso) -->
+                    <!-- ACCIÓN: Formulario de Solución (solo el técnico asignado, cuando el ticket está En Proceso) -->
                     <?php
                         $puedeResolver = (int)$ticket['id_estado'] === 2
-                            && ($rol === 'Administrador' || ($rol === 'Técnico' && (int)$ticket['id_tecnico_asignado'] === (int)$id_usuario));
+                            && $rol === 'Técnico' && (int)$ticket['id_tecnico_asignado'] === (int)$id_usuario;
                     ?>
+                    <?php if ((int)$ticket['id_estado'] === 2 && !$puedeResolver): ?>
+                    <div class="alert alert-info border-0 shadow-sm">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-tools fs-3 text-info me-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">En Proceso</h6>
+                                <p class="small mb-0 text-dark">
+                                    <?= esc(nombre_con_rol($ticket['tecnico_nombre'], 'Técnico')) ?> está trabajando en la solución.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                     <?php if ($puedeResolver): ?>
                     <div class="card shadow-sm border-0 mb-4">
                         <div class="card-header bg-white pt-3 pb-2 border-bottom text-start">
@@ -248,7 +260,7 @@
                             <i class="bi bi-shield-check fs-2 text-success me-3"></i>
                             <div>
                                 <h6 class="fw-bold mb-1">Ticket Finalizado y Cerrado</h6>
-                                <p class="small mb-0 text-muted">Cerrado el <?= esc($ticket['fecha_cierre']) ?>. La solución ha sido archivada en la base de conocimientos.</p>
+                                <p class="small mb-0 text-muted">Cerrado el <?= esc(fecha_texto($ticket['fecha_cierre'])) ?> por <?= esc(nombre_con_rol($ticket['solicitante_nombre'], $ticket['solicitante_rol'])) ?>. La solución ha sido archivada en la base de conocimientos.</p>
                             </div>
                         </div>
                     </div>

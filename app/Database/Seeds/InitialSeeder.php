@@ -29,9 +29,10 @@ class InitialSeeder extends Seeder
 
         // 3. Catálogo: prioridades
         $prioridades = [
-            ['id_prioridad' => 1, 'nombre' => 'Baja',  'tiempo_sla_minutos' => 1440], // 1 día
-            ['id_prioridad' => 2, 'nombre' => 'Media', 'tiempo_sla_minutos' => 240],  // 4 h
-            ['id_prioridad' => 3, 'nombre' => 'Alta',  'tiempo_sla_minutos' => 120],  // 2 h
+            ['id_prioridad' => 1, 'nombre' => 'Baja',    'tiempo_sla_minutos' => 7200], // 5 días
+            ['id_prioridad' => 2, 'nombre' => 'Media',   'tiempo_sla_minutos' => 4320], // 3 días
+            ['id_prioridad' => 3, 'nombre' => 'Alta',    'tiempo_sla_minutos' => 2880], // 2 días
+            ['id_prioridad' => 4, 'nombre' => 'Urgente', 'tiempo_sla_minutos' => 1440], // 24 horas
         ];
         $db->table('prioridades')->ignore(true)->insertBatch($prioridades);
 
@@ -52,7 +53,7 @@ class InitialSeeder extends Seeder
                 'id_usuario'      => 1,
                 'id_rol'          => 1, // Administrador
                 'id_area'         => 1,
-                'nombre_completo' => 'Carlos Administrador',
+                'nombre_completo' => 'Carlos Muñoz',
                 'correo'          => 'admin@empresa.cl',
                 'password_hash'   => $passwordHash,
                 'estado'          => 'activo',
@@ -62,7 +63,7 @@ class InitialSeeder extends Seeder
                 'id_usuario'      => 2,
                 'id_rol'          => 2, // Técnico
                 'id_area'         => 1,
-                'nombre_completo' => 'Luis Técnico',
+                'nombre_completo' => 'Luis Fuentes',
                 'correo'          => 'tecnico@empresa.cl',
                 'password_hash'   => $passwordHash,
                 'estado'          => 'activo',
@@ -72,7 +73,7 @@ class InitialSeeder extends Seeder
                 'id_usuario'      => 3,
                 'id_rol'          => 3, // Solicitante
                 'id_area'         => 3,
-                'nombre_completo' => 'Ana Solicitante',
+                'nombre_completo' => 'Ana Torres',
                 'correo'          => 'usuario@empresa.cl',
                 'password_hash'   => $passwordHash,
                 'estado'          => 'activo',

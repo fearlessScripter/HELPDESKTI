@@ -269,7 +269,7 @@
                             </td>
                             <td><?= esc($t['asunto']) ?></td>
                             <td class="small text-muted"><?= esc($t['area_nombre']) ?></td>
-                            <td class="small"><?= esc(date('d/m/Y H:i', strtotime($t['fecha_creacion']))) ?></td>
+                            <td class="small"><?= esc(fecha_hora($t['fecha_creacion'])) ?></td>
                             <td>
                                 <?php if ($t['estado_nombre'] === 'Pendiente'): ?>
                                     <span class="badge bg-danger">Pendiente</span>

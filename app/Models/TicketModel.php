@@ -50,12 +50,17 @@ class TicketModel extends Model
 
         $puntaje = $vImpacto + $vUrgencia + $vArea; // Rango 3 - 9
 
-        if ($puntaje >= 7) {
-            $idPrioridad = 3; // Alta
+        // Impacto alto + urgencia alta (toda la empresa detenida) siempre es Urgente
+        if ($vImpacto === 3 && $vUrgencia === 3) {
+            $idPrioridad = 4; // Urgente (24 h)
+        } elseif ($puntaje >= 8) {
+            $idPrioridad = 4; // Urgente (24 h)
+        } elseif ($puntaje >= 7) {
+            $idPrioridad = 3; // Alta (2 días)
         } elseif ($puntaje >= 5) {
-            $idPrioridad = 2; // Media
+            $idPrioridad = 2; // Media (3 días)
         } else {
-            $idPrioridad = 1; // Baja
+            $idPrioridad = 1; // Baja (5 días)
         }
 
         $prioridad = (new PrioridadModel())->find($idPrioridad);
@@ -63,7 +68,7 @@ class TicketModel extends Model
         return [
             'id_prioridad' => $idPrioridad,
             'nombre'       => $prioridad['nombre'] ?? 'Baja',
-            'minutos_sla'  => (int)($prioridad['tiempo_sla_minutos'] ?? 1440),
+            'minutos_sla'  => (int)($prioridad['tiempo_sla_minutos'] ?? 7200),
         ];
     }
 
@@ -91,6 +96,7 @@ class TicketModel extends Model
                 tickets.*,
                 sol.nombre_completo as solicitante_nombre,
                 sol.correo as solicitante_correo,
+                rol_sol.nombre as solicitante_rol,
                 tec.nombre_completo as tecnico_nombre,
                 tec.correo as tecnico_correo,
                 areas_departamentos.nombre as area_nombre,
@@ -99,6 +105,7 @@ class TicketModel extends Model
                 estados_ticket.nombre as estado_nombre
             ')
             ->join('usuarios as sol', 'sol.id_usuario = tickets.id_solicitante')
+            ->join('roles as rol_sol', 'rol_sol.id_rol = sol.id_rol')
             ->join('usuarios as tec', 'tec.id_usuario = tickets.id_tecnico_asignado', 'left')
             ->join('areas_departamentos', 'areas_departamentos.id_area = tickets.id_area_afectada')
             ->join('prioridades', 'prioridades.id_prioridad = tickets.id_prioridad', 'left')
@@ -115,6 +122,20 @@ class TicketModel extends Model
             return $query->where('tickets.id_ticket', (int)$idOrCodigo)->first();
         }
         return $query->where('tickets.codigo_ticket', $idOrCodigo)->first();
+    }
+
+    /**
+     * ¿Puede este usuario ver el ticket?
+     * Administrador: todos. Resto: solo si lo creó o si es el técnico asignado ACTUALMENTE
+     * (un técnico al que se le reasignó el ticket pierde el acceso).
+     */
+    public static function usuarioPuedeVer(array $ticket, int $idUsuario, string $rol): bool
+    {
+        if ($rol === 'Administrador') {
+            return true;
+        }
+        return (int)$ticket['id_solicitante'] === $idUsuario
+            || (int)($ticket['id_tecnico_asignado'] ?? 0) === $idUsuario;
     }
 
     /**
@@ -173,12 +194,15 @@ class TicketModel extends Model
     public function aplicarFiltros(array $f, string $ordenDefecto = 'recientes')
     {
         if (!empty($f['q'])) {
-            $this->groupStart()
-                 ->like('tickets.codigo_ticket', $f['q'])
-                 ->orLike('tickets.asunto', $f['q'])
-                 ->orLike('tickets.descripcion', $f['q'])
-                 ->orLike('sol.nombre_completo', $f['q'])
-                 ->groupEnd();
+            helper('busqueda');
+            aplicar_busqueda($this, $f['q'], [
+                'tickets.codigo_ticket',
+                'tickets.asunto',
+                'tickets.descripcion',
+                'sol.nombre_completo',
+                'tec.nombre_completo',
+                'areas_departamentos.nombre',
+            ]);
         }
         if (!empty($f['id_estado'])) {
             $this->where('tickets.id_estado', $f['id_estado']);

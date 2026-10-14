@@ -304,7 +304,7 @@
         <!-- TABLA DE TICKETS -->
         <!-- ================================================= -->
 
-        <div class="ticket-table">
+        <div class="ticket-table" data-region="resultados">
 
             <table class="table table-hover align-middle mb-0">
 
@@ -327,7 +327,7 @@
                 </thead>
 
 
-                <tbody>
+                <tbody data-resaltable>
                     <?php if (!empty($tickets)): ?>
                         <?php foreach ($tickets as $t): ?>
                         <tr>
@@ -343,22 +343,16 @@
                                 <?= esc($t['area_nombre']) ?>
                             </td>
                             <td>
-                                <?php if ($t['prioridad_nombre'] === 'Alta'): ?>
-                                    <span class="badge bg-danger">Alta (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
-                                <?php elseif ($t['prioridad_nombre'] === 'Media'): ?>
-                                    <span class="badge bg-warning text-dark">Media (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
-                                <?php else: ?>
-                                    <span class="badge bg-info text-dark">Baja (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
-                                <?php endif; ?>
+                                <?= badge_prioridad($t['prioridad_nombre'], (int)$t['sla_minutos']) ?>
                             </td>
                             <td class="text-center">
                                 <div class="btn-group btn-group-sm">
                                     <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-outline-secondary" title="Ver Detalles">
-                                        <i class="bi bi-eye"></i>
+                                        <i class="bi bi-eye"></i> Ver
                                     </a>
                                     <?php if ($rol === 'Administrador'): ?>
                                     <button class="btn btn-success fw-bold" data-bs-toggle="modal" data-bs-target="#modalAsignar<?= $t['id_ticket'] ?>">
-                                        <i class="bi bi-person-check me-1"></i> Asignar Técnico
+                                        <i class="bi bi-person-check me-1"></i> Asignar
                                     </button>
                                     <?php endif; ?>
                                 </div>
@@ -377,7 +371,7 @@
                                                 </div>
                                                 <div class="modal-body">
                                                     <p class="mb-2"><strong>Asunto:</strong> <?= esc($t['asunto']) ?></p>
-                                                    <p class="text-muted small mb-3"><strong>Área:</strong> <?= esc($t['area_nombre']) ?> | <strong>Prioridad:</strong> <?= esc($t['prioridad_nombre']) ?></p>
+                                                    <p class="text-muted small mb-3"><strong>Área:</strong> <?= esc($t['area_nombre']) ?> | <strong>Prioridad:</strong> <?= badge_prioridad($t['prioridad_nombre'], (int)$t['sla_minutos']) ?></p>
                                                     
                                                     <label class="form-label fw-bold">Seleccionar Técnico Encargado <span class="text-danger">*</span></label>
                                                     <select class="form-select" name="id_tecnico" required>
@@ -405,12 +399,7 @@
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">
-                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                                No hay tickets pendientes en la cola en este momento.
-                            </td>
-                        </tr>
+                        <?= view('layout/sin_resultados', ['columnas' => 5, 'mensaje' => 'No hay tickets pendientes en la cola en este momento.']) ?>
                     <?php endif; ?>
                 </tbody>
 

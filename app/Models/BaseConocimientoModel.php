@@ -25,17 +25,21 @@ class BaseConocimientoModel extends Model
      */
     public function queryArticulos(array $f = [])
     {
-        $this->select('base_conocimientos.*, usuarios.nombre_completo as autor_nombre, tickets.codigo_ticket as ticket_codigo')
+        $this->select('base_conocimientos.*, usuarios.nombre_completo as autor_nombre, roles.nombre as autor_rol,
+                       tickets.codigo_ticket as ticket_codigo, tickets.id_solicitante, tickets.id_tecnico_asignado')
              ->join('usuarios', 'usuarios.id_usuario = base_conocimientos.id_autor')
+             ->join('roles', 'roles.id_rol = usuarios.id_rol')
              ->join('tickets', 'tickets.id_ticket = base_conocimientos.id_ticket_referencia', 'left');
 
         if (!empty($f['q'])) {
-            $this->groupStart()
-                 ->like('base_conocimientos.titulo', $f['q'])
-                 ->orLike('base_conocimientos.contenido', $f['q'])
-                 ->orLike('base_conocimientos.codigo_solucion', $f['q'])
-                 ->orLike('tickets.codigo_ticket', $f['q'])
-                 ->groupEnd();
+            helper('busqueda');
+            aplicar_busqueda($this, $f['q'], [
+                'base_conocimientos.titulo',
+                'base_conocimientos.contenido',
+                'base_conocimientos.codigo_solucion',
+                'tickets.codigo_ticket',
+                'usuarios.nombre_completo',
+            ]);
         }
         if (!empty($f['id_autor'])) {
             $this->where('base_conocimientos.id_autor', $f['id_autor']);

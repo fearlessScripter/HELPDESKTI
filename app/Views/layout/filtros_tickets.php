@@ -37,8 +37,8 @@ if (($f['id_tecnico'] ?? '') === 'sin') {
     $activos['id_tecnico'] = 'Técnico: ' . $buscarNombre($tecnicos ?? [], 'id_usuario', $f['id_tecnico']);
 }
 if (!empty($f['sla']))          $activos['sla'] = $f['sla'] === 'vencido' ? 'SLA: Vencido' : 'SLA: En plazo';
-if (!empty($f['desde']))        $activos['desde'] = 'Desde: ' . date('d/m/Y', strtotime($f['desde']));
-if (!empty($f['hasta']))        $activos['hasta'] = 'Hasta: ' . date('d/m/Y', strtotime($f['hasta']));
+if (!empty($f['desde']))        $activos['desde'] = 'Desde: ' . fecha_corta($f['desde']);
+if (!empty($f['hasta']))        $activos['hasta'] = 'Hasta: ' . fecha_corta($f['hasta']);
 
 // Cantidad de filtros del panel (sin contar la búsqueda de texto)
 $numFiltrosPanel = count(array_diff_key($activos, ['q' => true]));
@@ -55,10 +55,10 @@ $sinParametro = static function (string $param) use ($accion): string {
 
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
         <div class="input-group" style="max-width: 450px;">
-            <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-            <input type="search" name="q" value="<?= esc($f['q'] ?? '') ?>" class="form-control"
-                   placeholder="Buscar por código, asunto, descripción o solicitante...">
-            <button type="submit" class="btn btn-primary">Buscar</button>
+            <span class="input-group-text bg-white"><i class="bi bi-search" data-busqueda-icono></i></span>
+            <input type="search" name="q" value="<?= esc($f['q'] ?? '') ?>" class="form-control" autocomplete="off"
+                   data-busqueda-en-vivo aria-label="Buscar tickets"
+                   placeholder="Buscar por código, asunto, solicitante, técnico o área...">
         </div>
 
         <div class="d-flex gap-2">
@@ -182,18 +182,23 @@ $sinParametro = static function (string $param) use ($accion): string {
     </div>
     <?php endif; ?>
 
-    <?php if (!empty($activos)): ?>
-    <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
-        <span class="small text-muted">Filtros activos:</span>
-        <?php foreach ($activos as $param => $texto): ?>
-            <a href="<?= esc($sinParametro($param)) ?>" class="badge rounded-pill text-bg-light border text-decoration-none fw-normal py-2 px-3" title="Quitar filtro">
-                <?= esc($texto) ?> <i class="bi bi-x ms-1"></i>
-            </a>
-        <?php endforeach; ?>
-        <a href="<?= esc($accion) ?>" class="small text-decoration-none ms-1">Limpiar todo</a>
+    <?php // Región reemplazable por la búsqueda en vivo (siempre presente, aunque esté vacía) ?>
+    <div data-region="chips">
+        <?php if (!empty($activos)): ?>
+        <div class="d-flex flex-wrap align-items-center gap-2 mt-3">
+            <span class="small text-muted">Filtros activos:</span>
+            <?php foreach ($activos as $param => $texto): ?>
+                <a href="<?= esc($sinParametro($param)) ?>" class="badge rounded-pill text-bg-light border text-decoration-none fw-normal py-2 px-3" title="Quitar filtro">
+                    <?= esc($texto) ?> <i class="bi bi-x ms-1"></i>
+                </a>
+            <?php endforeach; ?>
+            <a href="<?= esc($accion) ?>" class="small text-decoration-none ms-1">Limpiar todo</a>
+        </div>
+        <?php endif; ?>
     </div>
-    <?php endif; ?>
 </form>
+
+<?= view('layout/busqueda_en_vivo') ?>
 
 <script>
 // Atajos de rango de fechas (Hoy, Últimos 7/30 días, Este mes)

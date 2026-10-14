@@ -1,3 +1,44 @@
+<?php
+/**
+ * Reportes y rendimiento (solo Administrador).
+ * Todos los indicadores se calculan con los filtros aplicados (ver ReporteModel).
+ */
+$f = $filtros;
+$r = $resumen;
+
+// Texto del período
+if ($f['desde'] && $f['hasta']) {
+    $dias = (int)((strtotime($f['hasta']) - strtotime($f['desde'])) / 86400) + 1;
+    $textoPeriodo = fecha_corta($f['desde']) . ' al ' . fecha_corta($f['hasta']) . " ({$dias} " . ($dias === 1 ? 'día' : 'días') . ')';
+} elseif ($f['desde']) {
+    $textoPeriodo = 'Desde el ' . fecha_corta($f['desde']);
+} elseif ($f['hasta']) {
+    $textoPeriodo = 'Hasta el ' . fecha_corta($f['hasta']);
+} else {
+    $textoPeriodo = 'Todo el historial';
+}
+
+// Variación de tickets creados vs período anterior
+$variacion = null;
+if ($creadosAnterior !== null) {
+    $variacion = $creadosAnterior > 0 ? (int)round(($r['total'] - $creadosAnterior) / $creadosAnterior * 100) : null;
+}
+
+/** Estado de un porcentaje de cumplimiento: [clase, icono, etiqueta] */
+$estadoCumplimiento = static function (?float $pct, int $meta): array {
+    if ($pct === null) return ['text-muted', 'bi-dash-circle', 'Sin datos'];
+    if ($pct >= $meta) return ['text-success', 'bi-check-circle-fill', 'Cumple meta'];
+    if ($pct >= $meta - 15) return ['text-warning-emphasis', 'bi-exclamation-circle-fill', 'Bajo la meta'];
+    return ['text-danger', 'bi-x-circle-fill', 'Crítico'];
+};
+$metaSla = 90;
+$metaOla = 90;
+[$claseSla, $iconoSla, $textoSla] = $estadoCumplimiento($r['sla_cumplimiento'], $metaSla);
+[$claseOla, $iconoOla, $textoOla] = $estadoCumplimiento($r['ola_cumplimiento'], $metaOla);
+
+$maxArea      = max(1, ...array_column($porArea, 'total') ?: [1]);
+$maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -21,6 +62,25 @@
         .user-name { font-weight: 600; }
         .user-role { font-size: 13px; color: #6c757d; }
         .content { padding: 30px; }
+        .kpi-valor { font-size: 2rem; font-weight: 700; line-height: 1.1; }
+        .kpi-titulo { font-size: .75rem; letter-spacing: .03em; }
+        /* Barras de una sola serie: un solo tono, extremo redondeado, valor en texto neutro */
+        .barra-pista { height: 8px; background: #e9ecef; border-radius: 4px; }
+        .barra-valor { height: 8px; background: #0d6efd; border-radius: 4px; min-width: 2px; }
+        .barra-fila:hover .barra-valor { background: #0a58ca; }
+        .solo-impresion { display: none; }
+
+        /* Impresión / Guardar como PDF */
+        @media print {
+            @page { size: A4 landscape; margin: 12mm; }
+            body { background: #fff; }
+            .sidebar, .topbar, .no-imprimir, .pagination, .alert-dismissible { display: none !important; }
+            .main-content { margin-left: 0; }
+            .content { padding: 0; }
+            .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; break-inside: avoid; }
+            .solo-impresion { display: block; }
+            a { text-decoration: none; color: inherit; }
+        }
     </style>
 </head>
 <body>
@@ -29,44 +89,133 @@
 
 <div class="main-content">
     <?= view('layout/topbar', [
-        'pageTitle' => 'Reportes y Rendimiento',
-        'topbarButton' => '<button class="btn btn-primary"><i class="bi bi-file-earmark-pdf"></i> Exportar a PDF</button>'
+        'pageTitle'    => 'Reportes y Rendimiento',
+        // Abre el diálogo de impresión del navegador -> "Guardar como PDF" (usa los estilos @media print)
+        'topbarButton' => '
+            <button type="button" class="btn btn-primary fw-semibold" onclick="window.print()" title="Guardar el reporte como PDF">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Exportar a PDF
+            </button>',
     ]) ?>
 
     <div class="content">
-        <!-- Barra de Filtros -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
+
+        <!-- Encabezado visible solo al imprimir / PDF -->
+        <div class="solo-impresion mb-3">
+            <h3 class="fw-bold mb-0">HelpDesk TI — Reporte de Rendimiento</h3>
+            <div class="text-muted small">Período: <?= esc($textoPeriodo) ?> · Generado el <?= esc(fecha_texto(date('Y-m-d H:i:s'))) ?> por <?= esc(nombre_con_rol($nombre, $rol)) ?></div>
+        </div>
+
+        <!-- Filtros -->
+        <form id="filtrosReporte" method="get" action="<?= current_url() ?>" class="card border-0 shadow-sm mb-4 no-imprimir">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-lg-4">
+                        <label class="form-label small fw-semibold text-muted mb-1">Período (fecha de creación)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">Desde</span>
+                            <input type="date" name="desde" id="repDesde" value="<?= esc($f['desde']) ?>" class="form-control">
+                            <span class="input-group-text">Hasta</span>
+                            <input type="date" name="hasta" id="repHasta" value="<?= esc($f['hasta']) ?>" class="form-control">
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4">
+                        <label class="form-label small fw-semibold text-muted mb-1">Área</label>
+                        <select name="id_area" class="form-select form-select-sm">
+                            <option value="">Todas</option>
+                            <?php foreach ($areas as $a): ?>
+                                <option value="<?= esc($a['id_area']) ?>" <?= $f['id_area'] === (int)$a['id_area'] ? 'selected' : '' ?>><?= esc($a['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-4">
+                        <label class="form-label small fw-semibold text-muted mb-1">Técnico</label>
+                        <select name="id_tecnico" class="form-select form-select-sm">
+                            <option value="">Todos</option>
+                            <?php foreach ($tecnicos as $tec): ?>
+                                <option value="<?= esc($tec['id_usuario']) ?>" <?= $f['id_tecnico'] === (int)$tec['id_usuario'] ? 'selected' : '' ?>>
+                                    <?= esc($tec['nombre_completo']) ?><?= $tec['estado'] !== 'activo' ? ' (inactivo)' : '' ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-4">
+                        <label class="form-label small fw-semibold text-muted mb-1">Prioridad</label>
+                        <select name="id_prioridad" class="form-select form-select-sm">
+                            <option value="">Todas</option>
+                            <?php foreach ($prioridades as $p): ?>
+                                <option value="<?= esc($p['id_prioridad']) ?>" <?= $f['id_prioridad'] === (int)$p['id_prioridad'] ? 'selected' : '' ?>><?= esc($p['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 d-flex gap-2">
+                        <a href="<?= current_url() ?>" class="btn btn-light btn-sm fw-semibold flex-fill" title="Volver al mes actual sin filtros"><i class="bi bi-x-circle me-1"></i> Limpiar</a>
+                        <button type="submit" class="btn btn-primary btn-sm fw-semibold flex-fill"><i class="bi bi-funnel-fill me-1"></i> Aplicar</button>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-1 mt-2 small">
+                    <span class="text-muted me-1">Rápido:</span>
+                    <?php foreach (['hoy' => 'Hoy', '7' => 'Últimos 7 días', '30' => 'Últimos 30 días', 'mes' => 'Este mes', 'mes_anterior' => 'Mes anterior', 'anio' => 'Este año', 'todo' => 'Todo el historial'] as $clave => $texto): ?>
+                        <button type="button" class="btn btn-link btn-sm p-0 me-2 text-decoration-none rango-reporte" data-rango="<?= $clave ?>"><?= $texto ?></button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </form>
+
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+            <div class="text-muted small">
+                <i class="bi bi-calendar-range me-1"></i> Período: <strong class="text-dark"><?= esc($textoPeriodo) ?></strong>
+                · <?= $r['total'] ?> ticket(s) en el período
+            </div>
+        </div>
+
+        <!-- Métricas generales -->
+        <h5 class="fw-bold mb-3">Métricas Generales</h5>
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <form class="row g-3 align-items-end">
-                            <div class="col-md-3">
-                                <label class="form-label text-muted fw-bold">Rango de Fechas</label>
-                                <input type="date" class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label text-muted fw-bold">Área Operativa</label>
-                                <select class="form-select">
-                                    <option selected>Todas las áreas...</option>
-                                    <option>Sistemas ERP</option>
-                                    <option>Redes y Conectividad</option>
-                                    <option>Soporte TI</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label text-muted fw-bold">Técnico Responsable</label>
-                                <select class="form-select">
-                                    <option selected>Todos los técnicos...</option>
-                                    <option>Luis Técnico</option>
-                                    <option>María Soporte</option>
-                                    <option>Jorge Redes</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 d-flex gap-2">
-                                <button type="reset" class="btn btn-light w-50">Restablecer</button>
-                                <button type="button" class="btn btn-primary w-50">Aplicar Filtros</button>
-                            </div>
-                        </form>
+                        <div class="kpi-titulo text-muted text-uppercase fw-bold mb-2">Tickets Creados</div>
+                        <div class="kpi-valor"><?= $r['total'] ?></div>
+                        <div class="small text-muted mt-1">
+                            <?php if ($creadosAnterior === null): ?>
+                                Sin período de comparación
+                            <?php elseif ($variacion === null): ?>
+                                Período anterior: <?= $creadosAnterior ?> tickets
+                            <?php else: ?>
+                                <i class="bi <?= $variacion > 0 ? 'bi-arrow-up' : ($variacion < 0 ? 'bi-arrow-down' : 'bi-dash') ?>"></i>
+                                <?= abs($variacion) ?>% vs período anterior (<?= $creadosAnterior ?>)
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="kpi-titulo text-muted text-uppercase fw-bold mb-2">Tasa de Resolución</div>
+                        <div class="kpi-valor"><?= $r['tasa_resolucion'] !== null ? $r['tasa_resolucion'] . '%' : '—' ?></div>
+                        <div class="small text-muted mt-1"><?= $r['resueltos'] + $r['cerrados'] ?> resueltos o cerrados de <?= $r['total'] ?></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="kpi-titulo text-muted text-uppercase fw-bold mb-2">Cumplimiento SLA</div>
+                        <div class="kpi-valor"><?= $r['sla_cumplimiento'] !== null ? $r['sla_cumplimiento'] . '%' : '—' ?></div>
+                        <div class="small mt-1 <?= $claseSla ?>">
+                            <i class="bi <?= $iconoSla ?>"></i> <?= $textoSla ?> <span class="text-muted">(meta <?= $metaSla ?>%)</span>
+                        </div>
+                        <div class="small text-muted"><?= $r['sla_incumplidos'] ?> incumplido(s) de <?= $r['sla_evaluados'] ?> evaluados</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="kpi-titulo text-muted text-uppercase fw-bold mb-2">Tickets Abiertos</div>
+                        <div class="kpi-valor"><?= $r['pendientes'] + $r['en_proceso'] ?></div>
+                        <div class="small text-muted mt-1"><?= $r['pendientes'] ?> pendientes · <?= $r['en_proceso'] ?> en proceso · <?= $r['resueltos'] ?> por confirmar</div>
                     </div>
                 </div>
             </div>
@@ -75,190 +224,210 @@
         <!-- Indicadores OLA -->
         <h5 class="fw-bold mb-3">Indicadores OLA (Operativa Interna)</h5>
         <div class="row g-4 mb-5">
-            <div class="col-md-4">
+            <div class="col-md-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <div class="bg-primary bg-opacity-10 p-3 rounded">
-                            <i class="bi bi-stopwatch fs-4 text-primary"></i>
-                        </div>
+                        <div class="bg-primary bg-opacity-10 p-3 rounded"><i class="bi bi-stopwatch fs-4 text-primary"></i></div>
                         <div>
-                            <h6 class="text-muted fw-bold mb-1">Tiempo Medio de Respuesta (MTTR)</h6>
-                            <h3 class="fw-bold mb-0">1.5h</h3>
+                            <div class="kpi-titulo text-muted text-uppercase fw-bold mb-1">Tiempo Medio de Asignación</div>
+                            <h3 class="fw-bold mb-0"><?= $r['min_asignacion'] !== null ? formato_minutos($r['min_asignacion']) : '—' ?></h3>
+                            <div class="small text-muted">Desde la creación hasta tener técnico</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <div class="bg-success bg-opacity-10 p-3 rounded">
-                            <i class="bi bi-check-circle fs-4 text-success"></i>
-                        </div>
+                        <div class="bg-success bg-opacity-10 p-3 rounded"><i class="bi bi-check-circle fs-4 text-success"></i></div>
                         <div>
-                            <h6 class="text-muted fw-bold mb-1">Tiempo Medio de Resolución</h6>
-                            <h3 class="fw-bold mb-0">4.2h</h3>
+                            <div class="kpi-titulo text-muted text-uppercase fw-bold mb-1">Tiempo Medio de Resolución</div>
+                            <h3 class="fw-bold mb-0"><?= $r['min_resolucion'] !== null ? formato_minutos($r['min_resolucion']) : '—' ?></h3>
+                            <div class="small text-muted">Desde la creación hasta la solución</div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-6 col-xl-3">
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body d-flex align-items-center gap-3">
-                        <div class="bg-warning bg-opacity-10 p-3 rounded">
-                            <i class="bi bi-arrow-up-right-circle fs-4 text-warning"></i>
-                        </div>
+                        <div class="bg-info bg-opacity-10 p-3 rounded"><i class="bi bi-diagram-3 fs-4 text-info"></i></div>
                         <div>
-                            <h6 class="text-muted fw-bold mb-1">Tickets Escalados</h6>
-                            <h3 class="fw-bold mb-0">15</h3>
+                            <div class="kpi-titulo text-muted text-uppercase fw-bold mb-1">Cumplimiento OLA (Asignación)</div>
+                            <h3 class="fw-bold mb-0"><?= $r['ola_cumplimiento'] !== null ? $r['ola_cumplimiento'] . '%' : '—' ?></h3>
+                            <div class="small <?= $claseOla ?>"><i class="bi <?= $iconoOla ?>"></i> <?= $textoOla ?> <span class="text-muted">(meta <?= $metaOla ?>%)</span></div>
+                            <?php
+                                // Plazo OLA por prioridad, calculado desde el catálogo (ej: Urgente 6 h · Alta 12 h ...)
+                                $plazosOla = implode(' · ', array_map(
+                                    static fn ($p) => $p['nombre'] . ': ' . formato_minutos(intdiv((int)$p['tiempo_sla_minutos'] * $olaPorcentaje, 100)),
+                                    $prioridades
+                                ));
+                            ?>
+                            <div class="small text-muted" title="<?= esc($plazosOla) ?>">Asignar dentro del <?= $olaPorcentaje ?>% del SLA <i class="bi bi-info-circle"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body d-flex align-items-center gap-3">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded"><i class="bi bi-arrow-left-right fs-4 text-warning"></i></div>
+                        <div>
+                            <div class="kpi-titulo text-muted text-uppercase fw-bold mb-1">Tickets Escalados</div>
+                            <h3 class="fw-bold mb-0"><?= $r['escalados'] ?></h3>
+                            <div class="small text-muted">Reasignados a otro técnico</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <h5 class="fw-bold mb-3">Métricas Generales</h5>
+        <!-- Distribución -->
         <div class="row g-4 mb-4">
-            <div class="col-md-3">
+            <div class="col-lg-6">
                 <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted text-uppercase fw-bold mb-3">Tickets Creados (Mes)</h6>
-                        <h2 class="fw-bold mb-0">124</h2>
-                        <span class="text-success small fw-bold"><i class="bi bi-arrow-up"></i> 12% vs mes anterior</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted text-uppercase fw-bold mb-3">Tasa de Resolución</h6>
-                        <h2 class="fw-bold mb-0 text-success">89%</h2>
-                        <span class="text-muted small">Objetivo: 95%</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted text-uppercase fw-bold mb-3">Tiempo Promedio (SLA)</h6>
-                        <h2 class="fw-bold mb-0">3.2h</h2>
-                        <span class="text-danger small fw-bold"><i class="bi bi-arrow-up"></i> 0.5h vs mes anterior</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted text-uppercase fw-bold mb-3">CUMPLIMIENTO OLA (DERIVACIONES)</h6>
-                        <h2 class="fw-bold mb-0 text-success">92%</h2>
-                        <span class="text-muted small">↑ 2% vs mes anterior (Meta: 90%)</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <h5 class="fw-bold mb-4">Tickets por Área Afectada</h5>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                                Sistemas ERP
-                                <span class="badge bg-primary rounded-pill">45</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                                Redes y Conectividad
-                                <span class="badge bg-primary rounded-pill">32</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                                Soporte TI (Equipos)
-                                <span class="badge bg-primary rounded-pill">28</span>
-                            </li>
-                            <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0">
-                                Telefonía IP
-                                <span class="badge bg-primary rounded-pill">19</span>
-                            </li>
-                        </ul>
+                        <?php foreach ($porArea as $a): ?>
+                            <?php $pct = $r['total'] ? round($a['total'] / $r['total'] * 100) : 0; ?>
+                            <div class="barra-fila mb-3" title="<?= esc($a['nombre']) ?>: <?= $a['total'] ?> ticket(s) · <?= $pct ?>% del total">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span><?= esc($a['nombre']) ?></span>
+                                    <span class="fw-semibold"><?= $a['total'] ?> <span class="text-muted fw-normal">(<?= $pct ?>%)</span></span>
+                                </div>
+                                <div class="barra-pista"><div class="barra-valor" style="width: <?= round($a['total'] / $maxArea * 100) ?>%"></div></div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm">
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <h5 class="fw-bold mb-4">Desempeño de Técnicos</h5>
-                        <table class="table table-sm table-borderless align-middle">
-                            <thead class="text-muted">
-                                <tr>
-                                    <th>Técnico</th>
-                                    <th class="text-center">Resueltos</th>
-                                    <th class="text-center">SLA Cumplido</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="fw-bold">Luis Técnico</td>
-                                    <td class="text-center">45</td>
-                                    <td class="text-center"><span class="text-success fw-bold">98%</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">María Soporte</td>
-                                    <td class="text-center">38</td>
-                                    <td class="text-center"><span class="text-warning text-dark fw-bold">85%</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold">Jorge Redes</td>
-                                    <td class="text-center">26</td>
-                                    <td class="text-center"><span class="text-success fw-bold">92%</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <h5 class="fw-bold mb-4">Tickets por Prioridad</h5>
+                        <?php foreach ($porPrioridad as $p): ?>
+                            <?php $pct = $r['total'] ? round($p['total'] / $r['total'] * 100) : 0; ?>
+                            <div class="barra-fila mb-3" title="Prioridad <?= esc($p['nombre']) ?> (SLA <?= formato_minutos((int)$p['sla']) ?>): <?= $p['total'] ?> ticket(s) · <?= $pct ?>% del total">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span><?= badge_prioridad($p['nombre']) ?> <span class="text-muted">SLA <?= formato_minutos((int)$p['sla']) ?></span></span>
+                                    <span class="fw-semibold"><?= $p['total'] ?> <span class="text-muted fw-normal">(<?= $pct ?>%)</span></span>
+                                </div>
+                                <div class="barra-pista"><div class="barra-valor" style="width: <?= round($p['total'] / $maxPrioridad * 100) ?>%"></div></div>
+                            </div>
+                        <?php endforeach; ?>
+                        <div class="small text-muted border-top pt-2 mt-2">
+                            Estado actual: <?= $r['pendientes'] ?> pendientes · <?= $r['en_proceso'] ?> en proceso · <?= $r['resueltos'] ?> resueltos · <?= $r['cerrados'] ?> cerrados
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Auditoría de Incumplimientos -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="fw-bold mb-4">Auditoría de Incumplimientos (SLA / OLA)</h5>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0">
-                                <thead class="text-muted">
+
+        <!-- Desempeño de técnicos -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="fw-bold mb-3">Desempeño de Técnicos</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="text-muted small">
+                            <tr>
+                                <th>Técnico</th>
+                                <th class="text-center">Asignados</th>
+                                <th class="text-center">En proceso</th>
+                                <th class="text-center">Resueltos</th>
+                                <th class="text-center">SLA cumplido</th>
+                                <th class="text-center">T. medio de resolución</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($tecnicosDesempeno)): ?>
+                                <?php foreach ($tecnicosDesempeno as $tec): ?>
+                                    <?php [$cls, $ico, $txt] = $estadoCumplimiento($tec['sla'] !== null ? (float)$tec['sla'] : null, $metaSla); ?>
                                     <tr>
-                                        <th>ID Ticket</th>
-                                        <th>Técnico Responsable</th>
-                                        <th>Horas de Retraso</th>
-                                        <th>Categoría</th>
-                                        <th>Tipo de Brecha</th>
+                                        <td class="fw-semibold"><?= esc($tec['nombre']) ?></td>
+                                        <td class="text-center"><?= $tec['asignados'] ?></td>
+                                        <td class="text-center"><?= $tec['en_proceso'] ?></td>
+                                        <td class="text-center"><?= $tec['resueltos'] ?></td>
+                                        <td class="text-center <?= $cls ?>" title="<?= $txt ?>">
+                                            <i class="bi <?= $ico ?>"></i> <?= $tec['sla'] !== null ? $tec['sla'] . '%' : 'Sin datos' ?>
+                                        </td>
+                                        <td class="text-center"><?= $tec['min_resolucion'] !== null ? formato_minutos($tec['min_resolucion']) : '—' ?></td>
                                     </tr>
-                                </thead>
-                                <tbody>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr><td colspan="6" class="text-center text-muted py-3">No hay técnicos para mostrar.</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="small text-muted mt-2">El tiempo de resolución del técnico se mide desde la asignación hasta la solución.</div>
+            </div>
+        </div>
+
+        <!-- Auditoría de incumplimientos -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Auditoría de Incumplimientos (SLA / OLA)</h5>
+                    <span class="small text-muted"><?= $pager->getTotal('auditoria') ?> ticket(s) con incumplimiento</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="text-muted small">
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Técnico responsable</th>
+                                <th>Área</th>
+                                <th>Prioridad</th>
+                                <th>Incumplimiento</th>
+                                <th>Retraso</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (!empty($auditoria)): ?>
+                                <?php foreach ($auditoria as $t): ?>
+                                    <?php foreach (\App\Models\ReporteModel::brechas($t) as $i => $b): ?>
                                     <tr>
-                                        <td class="fw-bold">#TCK-1023</td>
-                                        <td>Luis Técnico</td>
-                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+3 horas y 30 minutos</span></td>
-                                        <td>Sistemas ERP</td>
-                                        <td><span class="badge text-bg-secondary">SLA</span></td>
+                                        <?php if ($i === 0): ?>
+                                            <?php $filas = count(\App\Models\ReporteModel::brechas($t)); ?>
+                                            <td class="fw-bold" rowspan="<?= $filas ?>">
+                                                <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="text-decoration-none">#<?= esc($t['codigo_ticket']) ?></a>
+                                                <div class="small text-muted fw-normal"><?= esc(fecha_hora($t['fecha_creacion'])) ?></div>
+                                            </td>
+                                            <td rowspan="<?= $filas ?>"><?= !empty($t['tecnico_nombre']) ? esc($t['tecnico_nombre']) : '<span class="text-muted fst-italic">Sin asignar</span>' ?></td>
+                                            <td rowspan="<?= $filas ?>" class="small"><?= esc($t['area_nombre']) ?></td>
+                                            <td rowspan="<?= $filas ?>"><?= badge_prioridad($t['prioridad_nombre'], (int)$t['sla_minutos']) ?></td>
+                                        <?php endif; ?>
+                                        <td>
+                                            <span class="badge <?= $b['tipo'] === 'SLA' ? 'text-bg-secondary' : 'text-bg-info' ?>"><?= $b['tipo'] ?></span>
+                                            <span class="small"><?= esc($b['detalle']) ?></span>
+                                        </td>
+                                        <td><span class="badge bg-danger-subtle text-danger-emphasis rounded-pill px-3 py-2">+<?= formato_minutos($b['minutos']) ?></span></td>
+                                        <?php if ($i === 0): ?>
+                                            <td rowspan="<?= $filas ?>"><?= esc($t['estado_nombre']) ?></td>
+                                        <?php endif; ?>
                                     </tr>
-                                    <tr>
-                                        <td class="fw-bold">#TCK-1045</td>
-                                        <td>María Soporte</td>
-                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+1 hora y 20 minutos</span></td>
-                                        <td>Soporte TI</td>
-                                        <td><span class="badge text-bg-info text-white">OLA</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">#TCK-1089</td>
-                                        <td>Jorge Redes</td>
-                                        <td><span class="badge bg-danger rounded-pill px-3 py-2">+4 horas</span></td>
-                                        <td>Redes y Conectividad</td>
-                                        <td><span class="badge text-bg-secondary">SLA</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                                    <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="bi bi-shield-check fs-2 d-block mb-2 text-success"></i>
+                                        No hay incumplimientos de SLA ni OLA en el período seleccionado.
+                                    </td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <?php if ($pager->getPageCount('auditoria') > 1): ?>
+                    <div class="d-flex justify-content-end mt-3 no-imprimir">
+                        <?= $pager->links('auditoria', 'bootstrap') ?>
                     </div>
+                <?php endif; ?>
+                <div class="small text-muted mt-2">
+                    <strong>SLA:</strong> plazo de solución según la prioridad. <strong>OLA:</strong> plazo interno de asignación (<?= $olaPorcentaje ?>% del SLA).
                 </div>
             </div>
         </div>
@@ -266,5 +435,31 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Rangos rápidos: rellenan las fechas y aplican el filtro
+document.querySelectorAll('.rango-reporte').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var hoy = new Date(), desde = new Date(hoy), hasta = new Date(hoy);
+        switch (btn.dataset.rango) {
+            case 'hoy': break;
+            case '7': desde.setDate(hoy.getDate() - 6); break;
+            case '30': desde.setDate(hoy.getDate() - 29); break;
+            case 'mes': desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1); break;
+            case 'mes_anterior':
+                desde = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+                hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 0);
+                break;
+            case 'anio': desde = new Date(hoy.getFullYear(), 0, 1); break;
+            case 'todo': desde = null; hasta = null; break;
+        }
+        var iso = function (d) {
+            return d ? d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') : '';
+        };
+        document.getElementById('repDesde').value = iso(desde);
+        document.getElementById('repHasta').value = iso(hasta);
+        document.getElementById('filtrosReporte').submit();
+    });
+});
+</script>
 </body>
 </html>

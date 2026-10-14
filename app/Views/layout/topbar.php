@@ -63,7 +63,7 @@ if (!isset($notificaciones)) {
                                     <i class="bi bi-info-circle-fill text-info me-2"></i>
                                 <?php endif; ?>
                                 <span><?= esc($n['mensaje']) ?></span>
-                                <br><small class="text-muted ms-4" style="font-size: 11px;"><?= esc($n['fecha_creacion']) ?></small>
+                                <br><small class="text-muted ms-4" style="font-size: 11px;"><?= esc(fecha_hora($n['fecha_creacion'])) ?></small>
                             </a>
                         </li>
                         <li><hr class="dropdown-divider my-1"></li>

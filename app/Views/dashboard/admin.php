@@ -144,13 +144,7 @@
                             <td><?= esc($tr['asunto']) ?></td>
                             <td><?= esc($tr['area_nombre']) ?></td>
                             <td>
-                                <?php if ($tr['prioridad_nombre'] === 'Alta'): ?>
-                                    <span class="badge bg-danger">Alta (<?= formato_minutos((int)$tr['sla_minutos']) ?>)</span>
-                                <?php elseif ($tr['prioridad_nombre'] === 'Media'): ?>
-                                    <span class="badge bg-warning text-dark">Media (<?= formato_minutos((int)$tr['sla_minutos']) ?>)</span>
-                                <?php else: ?>
-                                    <span class="badge bg-info text-dark">Baja (<?= formato_minutos((int)$tr['sla_minutos']) ?>)</span>
-                                <?php endif; ?>
+                                <?= badge_prioridad($tr['prioridad_nombre'], (int)$tr['sla_minutos']) ?>
                             </td>
                             <td>
                                 <?php if ($tr['estado_nombre'] === 'Pendiente'): ?>

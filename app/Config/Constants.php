@@ -77,3 +77,12 @@ defined('EXIT_USER_INPUT')     || define('EXIT_USER_INPUT', 7);     // invalid u
 defined('EXIT_DATABASE')       || define('EXIT_DATABASE', 8);       // database error
 defined('EXIT__AUTO_MIN')      || define('EXIT__AUTO_MIN', 9);      // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      || define('EXIT__AUTO_MAX', 125);    // highest automatically-assigned error code
+
+/*
+ | --------------------------------------------------------------------------
+ | Datos de la aplicación (se muestran en "Acerca de")
+ | --------------------------------------------------------------------------
+ */
+defined('APP_NOMBRE')   || define('APP_NOMBRE', 'HelpDesk TI');
+defined('APP_VERSION')  || define('APP_VERSION', '1.0.0');
+defined('APP_CONTACTO') || define('APP_CONTACTO', 'correodeejemplo@gmail.com');

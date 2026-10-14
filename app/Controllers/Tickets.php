@@ -92,6 +92,8 @@ class Tickets extends BaseController
         $data['pager']        = $this->ticketModel->pager;
         $data['filtros']      = $filtros;
         $data['ordenDefecto'] = $ordenDefecto;
+        // Para mostrar "sin resultados para la búsqueda" en vez de "no hay tickets"
+        $data['hayFiltros']   = (bool)array_filter(array_diff_key($filtros, ['orden' => 1, 'por_pagina' => 1]));
         $data['areas']        = $this->areaModel->getActivas();
         $data['estados']      = (new EstadoTicketModel())->findAll();
         $data['prioridades']  = (new PrioridadModel())->orderBy('id_prioridad', 'DESC')->findAll();
@@ -99,10 +101,19 @@ class Tickets extends BaseController
         return $data;
     }
 
+    /**
+     * Crean tickets el Solicitante y el Administrador (el técnico solo los atiende).
+     */
+    private function puedeCrearTickets(array $data): bool
+    {
+        return in_array($data['rol'], ['Solicitante', 'Administrador'], true);
+    }
+
     public function nuevo()
     {
         $data = $this->getSessionData();
         if (!$data) return redirect()->to('/auth');
+        if (!$this->puedeCrearTickets($data)) return redirect()->to('/dashboard');
 
         $data['areas'] = $this->areaModel->getActivas();
         return view('tickets/nuevo', $data);
@@ -112,6 +123,7 @@ class Tickets extends BaseController
     {
         $data = $this->getSessionData();
         if (!$data) return redirect()->to('/auth');
+        if (!$this->puedeCrearTickets($data)) return redirect()->to('/dashboard');
 
         $idArea    = (int)$this->request->getPost('id_area_afectada');
         $asunto    = trim((string)$this->request->getPost('asunto'));
@@ -178,7 +190,7 @@ class Tickets extends BaseController
     {
         $data = $this->getSessionData();
         if (!$data) return redirect()->to('/auth');
-        if (!in_array($data['rol'], ['Administrador', 'Técnico'])) return redirect()->to('/dashboard');
+        if ($data['rol'] !== 'Administrador') return redirect()->to('/dashboard'); // el técnico solo ve sus tickets
 
         $query = $this->ticketModel->getTicketsQuery();
         $data  = $this->prepararListado($data, $query, $this->leerFiltros(), 'recientes');
@@ -189,7 +201,7 @@ class Tickets extends BaseController
     {
         $data = $this->getSessionData();
         if (!$data) return redirect()->to('/auth');
-        if (!in_array($data['rol'], ['Administrador', 'Técnico'])) return redirect()->to('/dashboard');
+        if ($data['rol'] !== 'Administrador') return redirect()->to('/dashboard'); // la cola la gestiona el admin
 
         $data = $this->prepararListado($data, $this->ticketModel->queryCola(), $this->leerFiltros(), 'prioridad');
         return view('tickets/cola', $data);
@@ -234,9 +246,11 @@ class Tickets extends BaseController
             return redirect()->to('/tickets/mis-tickets');
         }
 
-        // Un solicitante solo puede ver sus propios tickets
-        if ($data['rol'] === 'Solicitante' && (int)$ticket['id_solicitante'] !== $data['id_usuario']) {
-            session()->setFlashdata('error', 'No tienes permiso para ver este ticket.');
+        // Solo el admin, el creador o el técnico asignado actualmente pueden ver el ticket
+        if (!TicketModel::usuarioPuedeVer($ticket, $data['id_usuario'], $data['rol'])) {
+            session()->setFlashdata('error', $data['rol'] === 'Técnico'
+                ? "El ticket #{$ticket['codigo_ticket']} ya no está asignado a ti."
+                : 'No tienes permiso para ver este ticket.');
             return redirect()->to('/tickets/mis-tickets');
         }
 
@@ -399,9 +413,10 @@ class Tickets extends BaseController
     {
         $data = $this->getSessionData();
         if (!$data) return redirect()->to('/auth');
-        if (!in_array($data['rol'], ['Técnico', 'Administrador'])) {
-            session()->setFlashdata('error', 'No tienes permisos para registrar solución técnica.');
-            return redirect()->to('/dashboard');
+        // Registrar la solución es tarea exclusiva del técnico (el admin asigna/reasigna, no resuelve)
+        if ($data['rol'] !== 'Técnico') {
+            session()->setFlashdata('error', 'Solo el técnico asignado puede registrar la solución de un ticket.');
+            return redirect()->back();
         }
 
         $idTicket = (int)$this->request->getPost('id_ticket');
@@ -424,7 +439,7 @@ class Tickets extends BaseController
         }
 
         // El técnico solo puede resolver los tickets que tiene asignados
-        if ($data['rol'] === 'Técnico' && (int)$ticket['id_tecnico_asignado'] !== $data['id_usuario']) {
+        if ((int)$ticket['id_tecnico_asignado'] !== $data['id_usuario']) {
             session()->setFlashdata('error', 'Solo el técnico asignado puede resolver este ticket.');
             return redirect()->back();
         }

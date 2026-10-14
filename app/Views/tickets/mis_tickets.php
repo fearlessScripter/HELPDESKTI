@@ -304,7 +304,7 @@
         <!-- TABLA DE TICKETS -->
         <!-- ================================================= -->
 
-        <div class="ticket-table">
+        <div class="ticket-table" data-region="resultados">
             <table class="table table-hover align-middle mb-0">
 
                 <thead class="table-light">
@@ -329,7 +329,7 @@
 
                 </thead>
 
-                <tbody>
+                <tbody data-resaltable>
                     <?php if (!empty($tickets)): ?>
                         <?php foreach ($tickets as $t): ?>
                         <tr>
@@ -342,13 +342,7 @@
                                 <td><?= esc($t['solicitante_nombre']) ?></td>
                                 <td><?= esc($t['asunto']) ?></td>
                                 <td>
-                                    <?php if ($t['prioridad_nombre'] === 'Alta'): ?>
-                                        <span class="badge bg-danger">Alta (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
-                                    <?php elseif ($t['prioridad_nombre'] === 'Media'): ?>
-                                        <span class="badge bg-warning text-dark">Media (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
-                                    <?php else: ?>
-                                        <span class="badge bg-info text-dark">Baja (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
-                                    <?php endif; ?>
+                                    <?= badge_prioridad($t['prioridad_nombre'], (int)$t['sla_minutos']) ?>
                                 </td>
                                 <td>
                                     <?php if ($t['estado_nombre'] === 'Pendiente'): ?>
@@ -366,7 +360,7 @@
                                 </td>
                             <?php else: ?>
                                 <td><?= esc($t['asunto']) ?></td>
-                                <td><?= esc(date('d/m/Y', strtotime($t['fecha_creacion']))) ?></td>
+                                <td><?= esc(fecha_hora($t['fecha_creacion'])) ?></td>
                                 <td>
                                     <?php if ($t['estado_nombre'] === 'Pendiente'): ?>
                                         <span class="badge bg-danger">Pendiente</span>
@@ -391,12 +385,7 @@
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr>
-                            <td colspan="<?= (isset($rol) && $rol === 'Técnico') ? '7' : '5' ?>" class="text-center py-4 text-muted">
-                                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                                No se encontraron tickets registrados.
-                            </td>
-                        </tr>
+                        <?= view('layout/sin_resultados', ['columnas' => (isset($rol) && $rol === 'Técnico') ? 7 : 5, 'mensaje' => 'Aún no tienes tickets registrados.']) ?>
                     <?php endif; ?>
                 </tbody>
 

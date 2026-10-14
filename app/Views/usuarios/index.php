@@ -36,18 +36,34 @@
     <?= view('layout/topbar', ['pageTitle' => 'Gestión de Accesos']) ?>
 
     <div class="content">
-        <?php $hayFiltros = $filtros['q'] !== '' || $filtros['id_rol'] || $filtros['id_area'] !== '' || $filtros['estado'] !== ''; ?>
-        <form id="filtrosForm" method="get" action="<?= current_url() ?>" class="card card-body border-0 shadow-sm mb-4">
+        <?php $numFiltrosPanel = ($filtros['id_rol'] ? 1 : 0) + ($filtros['id_area'] !== '' ? 1 : 0) + ($filtros['estado'] !== '' ? 1 : 0); ?>
+        <form id="filtrosForm" method="get" action="<?= current_url() ?>" class="mb-4">
             <input type="hidden" name="por_pagina" value="<?= esc($filtros['por_pagina']) ?>">
-            <div class="row g-2 align-items-end">
-                <div class="col-lg-4 col-md-6">
-                    <label class="form-label small fw-semibold text-muted mb-1">Buscar</label>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                        <input type="search" name="q" value="<?= esc($filtros['q']) ?>" class="form-control" placeholder="Nombre o correo...">
-                    </div>
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="input-group" style="max-width: 450px;">
+                    <span class="input-group-text bg-white"><i class="bi bi-search" data-busqueda-icono></i></span>
+                    <input type="search" name="q" value="<?= esc($filtros['q']) ?>" class="form-control" autocomplete="off"
+                           data-busqueda-en-vivo aria-label="Buscar usuarios" placeholder="Buscar por nombre, correo, rol o área...">
                 </div>
-                <div class="col-lg-2 col-md-6">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary position-relative" data-bs-toggle="collapse"
+                            data-bs-target="#panelFiltros" aria-expanded="<?= $numFiltrosPanel ? 'true' : 'false' ?>">
+                        <i class="bi bi-funnel"></i> Filtros <i class="bi bi-chevron-down"></i>
+                        <?php if ($numFiltrosPanel): ?>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"><?= $numFiltrosPanel ?></span>
+                        <?php endif; ?>
+                    </button>
+                    <button type="button" class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#nuevoUsuarioModal">
+                        <i class="bi bi-person-plus me-1"></i> Nuevo Usuario
+                    </button>
+                </div>
+            </div>
+
+            <div class="collapse <?= $numFiltrosPanel ? 'show' : '' ?>" id="panelFiltros">
+            <div class="card card-body border-0 shadow-sm mt-3">
+            <div class="row g-3">
+                <div class="col-md-4">
                     <label class="form-label small fw-semibold text-muted mb-1">Rol</label>
                     <select name="id_rol" class="form-select form-select-sm">
                         <option value="">Todos</option>
@@ -56,7 +72,7 @@
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-lg-2 col-md-6">
+                <div class="col-md-4">
                     <label class="form-label small fw-semibold text-muted mb-1">Área</label>
                     <select name="id_area" class="form-select form-select-sm">
                         <option value="">Todas</option>
@@ -66,7 +82,7 @@
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div class="col-lg-2 col-md-6">
+                <div class="col-md-4">
                     <label class="form-label small fw-semibold text-muted mb-1">Estado</label>
                     <select name="estado" class="form-select form-select-sm">
                         <option value="">Todos</option>
@@ -74,23 +90,18 @@
                         <option value="inactivo" <?= $filtros['estado'] === 'inactivo' ? 'selected' : '' ?>>Inactivo</option>
                     </select>
                 </div>
-                <div class="col-lg-2 col-md-12 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary btn-sm fw-semibold flex-fill"><i class="bi bi-funnel-fill"></i> Filtrar</button>
-                    <?php if ($hayFiltros): ?>
-                        <a href="<?= current_url() ?>" class="btn btn-light btn-sm" title="Limpiar filtros"><i class="bi bi-x-circle"></i></a>
-                    <?php endif; ?>
-                </div>
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-3">
+                <a href="<?= current_url() ?>" class="btn btn-light btn-sm fw-semibold"><i class="bi bi-x-circle me-1"></i> Limpiar</a>
+                <button type="submit" class="btn btn-primary btn-sm fw-semibold"><i class="bi bi-funnel-fill me-1"></i> Aplicar filtros</button>
+            </div>
+            </div>
             </div>
         </form>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-semibold mb-0">Usuarios del sistema</h5>
-            <button class="btn btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#nuevoUsuarioModal">
-                <i class="bi bi-person-plus me-1"></i> Nuevo Usuario
-            </button>
-        </div>
+        <?= view('layout/busqueda_en_vivo') ?>
 
-        <div class="ticket-table">
+        <div class="ticket-table" data-region="resultados">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
@@ -102,7 +113,7 @@
                         <th class="text-center">Acciones</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody data-resaltable>
                     <?php if (!empty($usuarios)): ?>
                         <?php foreach ($usuarios as $u): ?>
                         <tr>
@@ -341,29 +352,33 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Rellena los modales de acciones con los datos del usuario seleccionado
-document.querySelectorAll('.btn-editar').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-        var esYo = btn.dataset.yo === '1';
-        document.getElementById('editId').value = btn.dataset.id;
-        document.getElementById('editNombre').value = btn.dataset.nombre;
-        document.getElementById('editCorreo').value = btn.dataset.correo;
-        document.getElementById('editRol').value = btn.dataset.rol;
-        document.getElementById('editArea').value = btn.dataset.area;
-        // Un select deshabilitado no se envía, así que se bloquea con estilo + aviso y el servidor lo valida
-        document.getElementById('editRol').style.pointerEvents = esYo ? 'none' : '';
-        document.getElementById('editRol').classList.toggle('bg-light', esYo);
-        document.getElementById('editRolAviso').classList.toggle('d-none', !esYo);
+// Rellena los modales de acciones con los datos del usuario seleccionado.
+// Se usa delegación en document porque la búsqueda en vivo reemplaza las filas de la tabla.
+function alHacerClic(selector, accion) {
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest(selector);
+        if (btn) accion(btn);
     });
+}
+
+alHacerClic('.btn-editar', function (btn) {
+    var esYo = btn.dataset.yo === '1';
+    document.getElementById('editId').value = btn.dataset.id;
+    document.getElementById('editNombre').value = btn.dataset.nombre;
+    document.getElementById('editCorreo').value = btn.dataset.correo;
+    document.getElementById('editRol').value = btn.dataset.rol;
+    document.getElementById('editArea').value = btn.dataset.area;
+    // Un select deshabilitado no se envía, así que se bloquea con estilo + aviso y el servidor lo valida
+    document.getElementById('editRol').style.pointerEvents = esYo ? 'none' : '';
+    document.getElementById('editRol').classList.toggle('bg-light', esYo);
+    document.getElementById('editRolAviso').classList.toggle('d-none', !esYo);
 });
 
-document.querySelectorAll('.btn-password').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-        document.getElementById('formPassword').reset();
-        document.getElementById('passConfirmar').classList.remove('is-invalid');
-        document.getElementById('passId').value = btn.dataset.id;
-        document.getElementById('passNombre').textContent = btn.dataset.nombre;
-    });
+alHacerClic('.btn-password', function (btn) {
+    document.getElementById('formPassword').reset();
+    document.getElementById('passConfirmar').classList.remove('is-invalid');
+    document.getElementById('passId').value = btn.dataset.id;
+    document.getElementById('passNombre').textContent = btn.dataset.nombre;
 });
 
 document.getElementById('formPassword').addEventListener('submit', function (e) {
@@ -374,26 +389,24 @@ document.getElementById('formPassword').addEventListener('submit', function (e) 
     }
 });
 
-document.querySelectorAll('.btn-estado').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-        var activo = btn.dataset.activo === '1';
-        var nombre = document.createElement('strong');
-        nombre.textContent = btn.dataset.nombre;
-        document.getElementById('estadoId').value = btn.dataset.id;
-        document.getElementById('estadoTitulo').textContent = activo ? 'Deshabilitar Usuario' : 'Habilitar Usuario';
-        var texto = document.getElementById('estadoTexto');
-        texto.innerHTML = '';
-        texto.append(activo ? '¿Deseas deshabilitar a ' : '¿Deseas habilitar nuevamente a ', nombre, '?');
-        var detalle = document.createElement('p');
-        detalle.className = 'text-muted small mt-2 mb-0';
-        detalle.textContent = activo
-            ? 'El usuario no podrá iniciar sesión hasta que lo vuelvas a habilitar. Sus tickets e historial se conservan.'
-            : 'El usuario podrá volver a iniciar sesión con su contraseña actual.';
-        texto.append(detalle);
-        var boton = document.getElementById('estadoBoton');
-        boton.textContent = activo ? 'Deshabilitar' : 'Habilitar';
-        boton.className = 'btn fw-bold ' + (activo ? 'btn-danger' : 'btn-success');
-    });
+alHacerClic('.btn-estado', function (btn) {
+    var activo = btn.dataset.activo === '1';
+    var nombre = document.createElement('strong');
+    nombre.textContent = btn.dataset.nombre;
+    document.getElementById('estadoId').value = btn.dataset.id;
+    document.getElementById('estadoTitulo').textContent = activo ? 'Deshabilitar Usuario' : 'Habilitar Usuario';
+    var texto = document.getElementById('estadoTexto');
+    texto.innerHTML = '';
+    texto.append(activo ? '¿Deseas deshabilitar a ' : '¿Deseas habilitar nuevamente a ', nombre, '?');
+    var detalle = document.createElement('p');
+    detalle.className = 'text-muted small mt-2 mb-0';
+    detalle.textContent = activo
+        ? 'El usuario no podrá iniciar sesión hasta que lo vuelvas a habilitar. Sus tickets e historial se conservan.'
+        : 'El usuario podrá volver a iniciar sesión con su contraseña actual.';
+    texto.append(detalle);
+    var boton = document.getElementById('estadoBoton');
+    boton.textContent = activo ? 'Deshabilitar' : 'Habilitar';
+    boton.className = 'btn fw-bold ' + (activo ? 'btn-danger' : 'btn-success');
 });
 </script>
 </body>

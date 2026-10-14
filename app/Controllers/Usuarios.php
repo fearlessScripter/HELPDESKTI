@@ -51,10 +51,12 @@ class Usuarios extends BaseController
                                     ->join('areas_departamentos', 'areas_departamentos.id_area = usuarios.id_area', 'left');
 
         if ($filtros['q'] !== '') {
-            $query->groupStart()
-                  ->like('usuarios.nombre_completo', $filtros['q'])
-                  ->orLike('usuarios.correo', $filtros['q'])
-                  ->groupEnd();
+            aplicar_busqueda($query, $filtros['q'], [
+                'usuarios.nombre_completo',
+                'usuarios.correo',
+                'roles.nombre',
+                'areas_departamentos.nombre',
+            ]);
         }
         if ($filtros['id_rol']) {
             $query->where('usuarios.id_rol', $filtros['id_rol']);

@@ -39,17 +39,27 @@
                 </div>
             </div>
 
-            <?php $hayFiltrosAvanzados = $filtros['id_autor'] || $filtros['origen'] !== '' || $filtros['desde'] || $filtros['hasta']; ?>
+            <?php
+                $numFiltrosPanel     = ($filtros['id_autor'] ? 1 : 0) + ($filtros['origen'] !== '' ? 1 : 0) + ($filtros['desde'] ? 1 : 0) + ($filtros['hasta'] ? 1 : 0);
+                $hayFiltrosAvanzados = $numFiltrosPanel > 0;
+            ?>
             <div class="row justify-content-center mb-4">
                 <div class="col-md-8">
                     <form id="filtrosForm" method="get" action="<?= current_url() ?>">
                         <input type="hidden" name="por_pagina" value="<?= esc($filtros['por_pagina']) ?>">
-                        <div class="input-group shadow-sm">
-                            <input type="search" name="q" value="<?= esc($filtros['q']) ?>" class="form-control form-control-lg" placeholder="Buscar por error, software, hardware, código SOL o ticket...">
-                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosKb" title="Filtros avanzados">
-                                <i class="bi bi-sliders"></i>
+                        <div class="d-flex gap-2">
+                            <div class="input-group input-group-lg shadow-sm">
+                                <span class="input-group-text bg-white"><i class="bi bi-search" data-busqueda-icono></i></span>
+                                <input type="search" name="q" value="<?= esc($filtros['q']) ?>" class="form-control" autocomplete="off"
+                                       data-busqueda-en-vivo aria-label="Buscar soluciones"
+                                       placeholder="Buscar por error, software, hardware, código SOL o ticket...">
+                            </div>
+                            <button class="btn btn-outline-secondary position-relative text-nowrap shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#filtrosKb">
+                                <i class="bi bi-funnel"></i> Filtros <i class="bi bi-chevron-down"></i>
+                                <?php if ($numFiltrosPanel): ?>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary"><?= $numFiltrosPanel ?></span>
+                                <?php endif; ?>
                             </button>
-                            <button class="btn btn-primary px-4" type="submit">Buscar</button>
                         </div>
 
                         <div class="collapse <?= $hayFiltrosAvanzados ? 'show' : '' ?>" id="filtrosKb">
@@ -82,19 +92,20 @@
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-end gap-2 mt-2">
-                                    <a href="<?= current_url() ?>" class="btn btn-light btn-sm fw-semibold">Limpiar</a>
-                                    <button type="submit" class="btn btn-primary btn-sm fw-semibold">Aplicar filtros</button>
+                                    <a href="<?= current_url() ?>" class="btn btn-light btn-sm fw-semibold"><i class="bi bi-x-circle me-1"></i> Limpiar</a>
+                                    <button type="submit" class="btn btn-primary btn-sm fw-semibold"><i class="bi bi-funnel-fill me-1"></i> Aplicar filtros</button>
                                 </div>
                             </div>
                         </div>
                     </form>
+                    <?= view('layout/busqueda_en_vivo') ?>
                 </div>
             </div>
 
             <div class="row justify-content-center">
                 <div class="col-md-8">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-muted small">
+                        <span class="text-muted small" data-region="conteo">
                             <?= $pager->getTotal() ?> solución(es) encontradas
                             <?php if ($filtros['q'] !== '' || $hayFiltrosAvanzados): ?>
                                 · <a href="<?= current_url() ?>" class="text-decoration-none">ver todas</a>
@@ -105,7 +116,7 @@
                         </button>
                     </div>
 
-                    <div class="accordion shadow-sm" id="accordionConocimientos">
+                    <div class="accordion shadow-sm" id="accordionConocimientos" data-region="resultados" data-resaltable>
                         <?php if (!empty($articulos)): ?>
                             <?php foreach ($articulos as $index => $art): ?>
                             <div class="accordion-item border-0 mb-2">
@@ -119,16 +130,20 @@
                                     <div class="accordion-body text-secondary" style="white-space: pre-line;">
                                         <?= esc($art['contenido']) ?>
                                         <div class="mt-3 pt-2 border-top d-flex flex-wrap justify-content-between align-items-center gap-2 small text-muted" style="white-space: normal;">
-                                            <span><i class="bi bi-person me-1"></i> Autor: <?= esc($art['autor_nombre']) ?></span>
+                                            <span><i class="bi bi-person me-1"></i> Autor: <?= esc(nombre_con_rol($art['autor_nombre'], $art['autor_rol'])) ?></span>
                                             <?php if (!empty($art['ticket_codigo'])): ?>
-                                                <a href="<?= base_url('/tickets/detalles/' . $art['id_ticket_referencia']) ?>" class="text-decoration-none">
-                                                    <i class="bi bi-ticket-detailed me-1"></i> Ticket origen #<?= esc($art['ticket_codigo']) ?>
-                                                </a>
+                                                <?php if (\App\Models\TicketModel::usuarioPuedeVer($art, (int)$id_usuario, (string)$rol)): ?>
+                                                    <a href="<?= base_url('/tickets/detalles/' . $art['id_ticket_referencia']) ?>" class="text-decoration-none">
+                                                        <i class="bi bi-ticket-detailed me-1"></i> Ticket origen #<?= esc($art['ticket_codigo']) ?>
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span><i class="bi bi-ticket-detailed me-1"></i> Ticket origen #<?= esc($art['ticket_codigo']) ?></span>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                             <span>
-                                                <i class="bi bi-calendar3 me-1"></i> <?= esc($art['fecha_creacion']) ?>
+                                                <i class="bi bi-calendar3 me-1"></i> <?= esc(fecha_hora($art['fecha_creacion'])) ?>
                                                 <?php if (!empty($art['fecha_actualizacion']) && $art['fecha_actualizacion'] !== $art['fecha_creacion']): ?>
-                                                    · Actualizado: <?= esc($art['fecha_actualizacion']) ?>
+                                                    · Actualizado: <?= esc(fecha_hora($art['fecha_actualizacion'])) ?>
                                                 <?php endif; ?>
                                             </span>
                                         </div>
@@ -157,7 +172,7 @@
                         <?php endif; ?>
                     </div>
 
-                    <div class="card border-0 shadow-sm mt-3 overflow-hidden">
+                    <div class="card border-0 shadow-sm mt-3 overflow-hidden" data-region="paginacion">
                         <?= view('layout/paginacion') ?>
                     </div>
                 </div>
@@ -229,14 +244,15 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Rellena el modal de edición con los datos de la solución seleccionada
-document.querySelectorAll('.btn-modificar').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-        document.getElementById('editIdSolucion').value = btn.dataset.id;
-        document.getElementById('editCodigo').textContent = btn.dataset.codigo;
-        document.getElementById('editTitulo').value = btn.dataset.titulo;
-        document.getElementById('editContenido').value = btn.dataset.contenido;
-    });
+// Rellena el modal de edición con los datos de la solución seleccionada.
+// Delegación en document: la búsqueda en vivo reemplaza los artículos.
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.btn-modificar');
+    if (!btn) return;
+    document.getElementById('editIdSolucion').value = btn.dataset.id;
+    document.getElementById('editCodigo').textContent = btn.dataset.codigo;
+    document.getElementById('editTitulo').value = btn.dataset.titulo;
+    document.getElementById('editContenido').value = btn.dataset.contenido;
 });
 </script>
 </body>

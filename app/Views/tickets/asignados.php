@@ -304,7 +304,7 @@
         <!-- TABLA DE TICKETS -->
         <!-- ================================================= -->
 
-        <div class="ticket-table">
+        <div class="ticket-table" data-region="resultados">
             <table class="table table-hover align-middle mb-0">
 
                 <thead class="table-light">
@@ -328,7 +328,7 @@
 
                 </thead>
 
-                <tbody>
+                <tbody data-resaltable>
                     <?php if (!empty($tickets)): ?>
                         <?php foreach ($tickets as $t): ?>
                         <tr>
@@ -340,29 +340,28 @@
                             <td><?= esc($t['solicitante_nombre']) ?></td>
                             <td><?= esc($t['asunto']) ?></td>
                             <td>
-                                <?php if ($t['prioridad_nombre'] === 'Alta'): ?>
-                                    <span class="badge bg-danger">Alta (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
-                                <?php elseif ($t['prioridad_nombre'] === 'Media'): ?>
-                                    <span class="badge bg-warning text-dark">Media (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
-                                <?php else: ?>
-                                    <span class="badge bg-info text-dark">Baja (<?= formato_minutos((int)$t['sla_minutos']) ?>)</span>
-                                <?php endif; ?>
+                                <?= badge_prioridad($t['prioridad_nombre'], (int)$t['sla_minutos']) ?>
                             </td>
                             <td><span class="badge bg-warning text-dark">En Proceso</span></td>
                             <td>
                                 <?= sla_restante_html($t) ?>
                             </td>
                             <td class="text-center">
-                                <div class="d-flex justify-content-center gap-2">
-                                    <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-sm btn-primary fw-bold">
-                                        <i class="bi bi-tools me-1"></i> Atender
+                                <?php if (isset($rol) && $rol === 'Administrador'): ?>
+                                <!-- El admin supervisa y reasigna; la solución la registra el técnico -->
+                                <div class="btn-group btn-group-sm">
+                                    <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-outline-secondary" title="Ver Detalles">
+                                        <i class="bi bi-eye"></i> Ver
                                     </a>
-                                    <?php if (isset($rol) && $rol === 'Administrador'): ?>
-                                    <button class="btn btn-sm btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#reasignarModal<?= $t['id_ticket'] ?>">
+                                    <button class="btn btn-warning text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#reasignarModal<?= $t['id_ticket'] ?>">
                                         <i class="bi bi-arrow-left-right me-1"></i> Reasignar
                                     </button>
-                                    <?php endif; ?>
                                 </div>
+                                <?php else: ?>
+                                <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="btn btn-sm btn-primary fw-bold">
+                                    <i class="bi bi-tools me-1"></i> Atender
+                                </a>
+                                <?php endif; ?>
 
                                 <?php if (isset($rol) && $rol === 'Administrador'): ?>
                                 <div class="modal fade" id="reasignarModal<?= $t['id_ticket'] ?>" tabindex="-1" aria-hidden="true">
@@ -407,9 +406,7 @@
                         </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">No hay tickets asignados en proceso.</td>
-                        </tr>
+                        <?= view('layout/sin_resultados', ['columnas' => 7, 'mensaje' => 'No hay tickets asignados en proceso.']) ?>
                     <?php endif; ?>
                 </tbody>
             </table>
