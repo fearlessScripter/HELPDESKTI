@@ -2,6 +2,7 @@
 
 namespace App\Filters;
 
+use App\Libraries\RevisorSla;
 use App\Models\UsuarioModel;
 use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\RequestInterface;
@@ -9,7 +10,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 
 /**
  * Cierra la sesión de un usuario que fue deshabilitado por el administrador
- * mientras estaba conectado.
+ * mientras estaba conectado. También dispara la revisión periódica de alertas de SLA.
  */
 class SesionActiva implements FilterInterface
 {
@@ -27,6 +28,14 @@ class SesionActiva implements FilterInterface
             $session->remove(['id_usuario', 'nombre_completo', 'correo', 'rol', 'id_rol', 'area', 'isLoggedIn']);
             $session->setFlashdata('error', 'Tu cuenta fue deshabilitada. Contacta al administrador.');
             return redirect()->to('/auth');
+        }
+
+        // Alertas de SLA mientras se usa el sistema (como máximo cada N minutos, ver Config\Notificaciones).
+        // Un error aquí nunca debe impedir que el usuario use la página.
+        try {
+            (new RevisorSla())->revisarSiCorresponde();
+        } catch (\Throwable $e) {
+            log_message('error', 'Revisión automática de SLA falló: ' . $e->getMessage());
         }
 
         return null;

@@ -22,14 +22,17 @@ class Database extends Config
     /**
      * The default database connection.
      *
+     * Las credenciales NO se guardan aquí (este archivo está en git):
+     * se definen en el archivo .env (database.default.*), que está excluido del repositorio.
+     *
      * @var array<string, mixed>
      */
     public array $default = [
         'DSN'          => '',
         'hostname'     => '127.0.0.1',
-        'username'     => 'root',
-        'password'     => 'fe4rless',
-        'database'     => 'helpdesk_ti',
+        'username'     => '',
+        'password'     => '',
+        'database'     => '',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
         'pConnect'     => false,

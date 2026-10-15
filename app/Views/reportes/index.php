@@ -39,64 +39,85 @@ $metaOla = 90;
 $maxArea      = max(1, ...array_column($porArea, 'total') ?: [1]);
 $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
 ?>
-<!DOCTYPE html>
-<html lang="es" data-bs-theme="<?= tema_bootstrap() ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reportes - HelpDesk TI</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        body { background-color: #f5f6f8; }
-        .sidebar { width: 250px; height: 100vh; position: fixed; left: 0; top: 0; background-color: #212529; color: white; padding: 20px 15px; }
-        .sidebar-title { font-size: 22px; font-weight: bold; margin-bottom: 35px; padding-left: 10px; }
-        .sidebar a { display: flex; align-items: center; gap: 12px; color: #ced4da; text-decoration: none; padding: 12px 14px; margin-bottom: 5px; border-radius: 8px; transition: 0.2s; }
-        .sidebar a:hover { background-color: #343a40; color: white; }
-        .sidebar a.active { background-color: #0d6efd; color: white; }
-        .main-content { margin-left: 250px; min-height: 100vh; }
-        .topbar { height: 75px; background-color: white; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
-        .page-title { font-size: 24px; font-weight: 600; }
-        .user-button { border: none; background: transparent; display: flex; align-items: center; gap: 10px; padding: 5px 10px; }
-        .user-button:hover { background-color: #f1f3f5; border-radius: 8px; }
-        .user-name { font-weight: 600; }
-        .user-role { font-size: 13px; color: #6c757d; }
-        .content { padding: 30px; }
-        .kpi-valor { font-size: 2rem; font-weight: 700; line-height: 1.1; }
-        .kpi-titulo { font-size: .75rem; letter-spacing: .03em; }
-        /* Barras de una sola serie: un solo tono, extremo redondeado, valor en texto neutro */
-        .barra-pista { height: 8px; background: #e9ecef; border-radius: 4px; }
-        .barra-valor { height: 8px; background: #0d6efd; border-radius: 4px; min-width: 2px; }
-        .barra-fila:hover .barra-valor { background: #0a58ca; }
-        .solo-impresion { display: none; }
-
-        /* Impresión / Guardar como PDF */
-        @media print {
-            @page { size: A4 landscape; margin: 12mm; }
-            body { background: #fff; }
-            .sidebar, .topbar, .no-imprimir, .pagination, .alert-dismissible { display: none !important; }
-            .main-content { margin-left: 0; }
-            .content { padding: 0; }
-            .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; break-inside: avoid; }
-            .solo-impresion { display: block; }
-            a { text-decoration: none; color: inherit; }
-        }
-    </style>
-    <?= view('layout/tema') ?>
-</head>
-<body>
-
-<?= view('layout/sidebar', ['active' => 'reportes']) ?>
-
-<div class="main-content">
-    <?= view('layout/topbar', [
+<?= $this->extend('layout/principal') ?>
+<?php
+$this->setVar('menuActivo', 'reportes');
+$this->setVar('topbar', [
         'pageTitle'    => 'Reportes y Rendimiento',
         // Abre el diálogo de impresión del navegador -> "Guardar como PDF" (usa los estilos @media print)
         'topbarButton' => '
             <button type="button" class="btn btn-primary fw-semibold" onclick="window.print()" title="Guardar el reporte como PDF">
                 <i class="bi bi-file-earmark-pdf me-1"></i> Exportar a PDF
             </button>',
-    ]) ?>
+    ]);
+?>
+
+<?= $this->section('titulo') ?>Reportes - HelpDesk TI<?= $this->endSection() ?>
+
+<?= $this->section('estilos') ?>
+<style>
+    .kpi-valor { font-size: 2rem; font-weight: 700; line-height: 1.1; }
+
+    .kpi-titulo { font-size: .75rem; letter-spacing: .03em; }
+
+    /* Barras de una sola serie: un solo tono, extremo redondeado, valor en texto neutro */
+    .barra-pista { height: 8px; background: #e9ecef; border-radius: 4px; }
+
+    .barra-valor { height: 8px; background: #0d6efd; border-radius: 4px; min-width: 2px; }
+
+    .barra-fila:hover .barra-valor { background: #0a58ca; }
+
+    .solo-impresion { display: none; }
+    .auditoria-impresion { display: none; }
+
+    /* ── Impresión / Guardar como PDF (A4 horizontal) ── */
+    @media print {
+        @page { size: A4 landscape; margin: 12mm; }
+        body { background: #fff !important; }
+
+        /* Barras, badges y colores de prioridad se imprimen aunque "Gráficos de fondo" esté desactivado */
+        * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        .sidebar, .topbar, .no-imprimir, .pagination, .alert-dismissible,
+        #debug-bar, #debug-icon, #toolbarContainer { display: none !important; }
+        .main-content { margin-left: 0; }
+        .content { padding: 0; }
+        .solo-impresion { display: block; }
+        a { text-decoration: none; color: inherit; }
+
+        /* Grilla fija en papel: el ancho A4 activaría 2 columnas; se fuerzan 4 indicadores y 2 tarjetas por fila */
+        .row > .col-xl-3 { flex: 0 0 25%; max-width: 25%; }
+        .row > .col-lg-6 { flex: 0 0 50%; max-width: 50%; }
+        .row.g-4 { --bs-gutter-x: .75rem; --bs-gutter-y: .75rem; }
+
+        /* Alturas naturales: "h-100" + salto de página hacía que el contenido se saliera de su recuadro */
+        .h-100 { height: auto !important; }
+        .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; }
+        .card-body.p-4 { padding: 1rem !important; }
+        .kpi-valor { font-size: 1.6rem; }
+
+        /* Cortes de página: cada fila de tarjetas va completa y los títulos no quedan solos al final */
+        .row, .card { break-inside: avoid; page-break-inside: avoid; }
+        h5 { break-after: avoid; page-break-after: avoid; }
+        .mb-5 { margin-bottom: 1.25rem !important; }
+
+        /* Tablas largas (técnicos, auditoría): pueden continuar en la página siguiente, sin cortar filas.
+           Se imprimen como sección (título + tabla) sin recuadro: así un salto de página nunca deja un
+           recuadro vacío al final de una hoja. */
+        .card:has(table) { break-inside: auto; page-break-inside: auto; border: none !important; }
+        .card:has(table) > .card-body { padding: 0 !important; }
+        .card:has(table) h5 { border-bottom: 2px solid #212529; padding-bottom: .35rem; }
+        tr { break-inside: avoid; page-break-inside: avoid; }
+        thead { display: table-header-group; }
+
+        /* Auditoría: en papel se imprime la lista completa, no solo la página visible */
+        .auditoria-pantalla { display: none; }
+        .auditoria-impresion { display: table-row-group; }
+    }
+</style>
+<?= $this->endSection() ?>
+
+<?= $this->section('contenido') ?>
 
     <div class="content">
 
@@ -242,9 +263,9 @@ $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
                     <div class="card-body d-flex align-items-center gap-3">
                         <div class="bg-success bg-opacity-10 p-3 rounded"><i class="bi bi-check-circle fs-4 text-success"></i></div>
                         <div>
-                            <div class="kpi-titulo text-muted text-uppercase fw-bold mb-1">Tiempo Medio de Resolución</div>
+                            <div class="kpi-titulo text-muted text-uppercase fw-bold mb-1">Tiempo Total de Resolución</div>
                             <h3 class="fw-bold mb-0"><?= $r['min_resolucion'] !== null ? formato_minutos($r['min_resolucion']) : '—' ?></h3>
-                            <div class="small text-muted">Desde la creación hasta la solución</div>
+                            <div class="small text-muted">Promedio desde que se crea el ticket hasta su solución</div>
                         </div>
                     </div>
                 </div>
@@ -264,6 +285,7 @@ $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
                                     $prioridades
                                 ));
                             ?>
+                            <div class="small text-muted"><?= $r['ola_incumplidos'] ?> fuera de plazo de <?= $r['ola_evaluados'] ?> evaluados</div>
                             <div class="small text-muted" title="<?= esc($plazosOla) ?>">Asignar dentro del <?= $olaPorcentaje ?>% del SLA <i class="bi bi-info-circle"></i></div>
                         </div>
                     </div>
@@ -337,7 +359,7 @@ $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
                                 <th class="text-center">En proceso</th>
                                 <th class="text-center">Resueltos</th>
                                 <th class="text-center">SLA cumplido</th>
-                                <th class="text-center">T. medio de resolución</th>
+                                <th class="text-center">Tiempo de trabajo del técnico</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -361,7 +383,7 @@ $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
                         </tbody>
                     </table>
                 </div>
-                <div class="small text-muted mt-2">El tiempo de resolución del técnico se mide desde la asignación hasta la solución.</div>
+                <div class="small text-muted mt-2"><strong>Tiempo de trabajo del técnico:</strong> promedio desde que se le asigna el ticket hasta que registra la solución. (El <em>tiempo total de resolución</em> de arriba cuenta desde la creación del ticket, incluyendo la espera de asignación.)</div>
             </div>
         </div>
 
@@ -370,7 +392,12 @@ $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
             <div class="card-body">
                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                     <h5 class="fw-bold mb-0">Auditoría de Incumplimientos (SLA / OLA)</h5>
-                    <span class="small text-muted"><?= $pager->getTotal('auditoria') ?> ticket(s) con incumplimiento</span>
+                    <span class="small text-muted">
+                        <?= $pager->getTotal('auditoria') ?> ticket(s) con incumplimiento
+                        <?php if ($pager->getTotal('auditoria') > $maxAuditoriaImpresion): ?>
+                            <span class="solo-impresion">(se incluyen los primeros <?= $maxAuditoriaImpresion ?>)</span>
+                        <?php endif; ?>
+                    </span>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
@@ -385,40 +412,12 @@ $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
                                 <th>Estado</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <?php if (!empty($auditoria)): ?>
-                                <?php foreach ($auditoria as $t): ?>
-                                    <?php foreach (\App\Models\ReporteModel::brechas($t) as $i => $b): ?>
-                                    <tr>
-                                        <?php if ($i === 0): ?>
-                                            <?php $filas = count(\App\Models\ReporteModel::brechas($t)); ?>
-                                            <td class="fw-bold" rowspan="<?= $filas ?>">
-                                                <a href="<?= base_url('/tickets/detalles/' . $t['id_ticket']) ?>" class="text-decoration-none">#<?= esc($t['codigo_ticket']) ?></a>
-                                                <div class="small text-muted fw-normal"><?= esc(fecha_hora($t['fecha_creacion'])) ?></div>
-                                            </td>
-                                            <td rowspan="<?= $filas ?>"><?= !empty($t['tecnico_nombre']) ? esc($t['tecnico_nombre']) : '<span class="text-muted fst-italic">Sin asignar</span>' ?></td>
-                                            <td rowspan="<?= $filas ?>" class="small"><?= esc($t['area_nombre']) ?></td>
-                                            <td rowspan="<?= $filas ?>"><?= badge_prioridad($t['prioridad_nombre'], (int)$t['sla_minutos']) ?></td>
-                                        <?php endif; ?>
-                                        <td>
-                                            <span class="badge <?= $b['tipo'] === 'SLA' ? 'text-bg-secondary' : 'text-bg-info' ?>"><?= $b['tipo'] ?></span>
-                                            <span class="small"><?= esc($b['detalle']) ?></span>
-                                        </td>
-                                        <td><span class="badge bg-danger-subtle text-danger-emphasis rounded-pill px-3 py-2">+<?= formato_minutos($b['minutos']) ?></span></td>
-                                        <?php if ($i === 0): ?>
-                                            <td rowspan="<?= $filas ?>"><?= esc($t['estado_nombre']) ?></td>
-                                        <?php endif; ?>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-4">
-                                        <i class="bi bi-shield-check fs-2 d-block mb-2 text-success"></i>
-                                        No hay incumplimientos de SLA ni OLA en el período seleccionado.
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
+                        <!-- En pantalla: página actual. En impresión / PDF: la lista completa -->
+                        <tbody class="auditoria-pantalla">
+                            <?= view('reportes/_filas_auditoria', ['ticketsAuditoria' => $auditoria]) ?>
+                        </tbody>
+                        <tbody class="auditoria-impresion">
+                            <?= view('reportes/_filas_auditoria', ['ticketsAuditoria' => $auditoriaCompleta]) ?>
                         </tbody>
                     </table>
                 </div>
@@ -433,9 +432,9 @@ $maxPrioridad = max(1, ...array_column($porPrioridad, 'total') ?: [1]);
             </div>
         </div>
     </div>
-</div>
+<?= $this->endSection() ?>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<?= $this->section('scripts') ?>
 <script>
 // Rangos rápidos: rellenan las fechas y aplican el filtro
 document.querySelectorAll('.rango-reporte').forEach(function (btn) {
@@ -462,5 +461,4 @@ document.querySelectorAll('.rango-reporte').forEach(function (btn) {
     });
 });
 </script>
-</body>
-</html>
+<?= $this->endSection() ?>

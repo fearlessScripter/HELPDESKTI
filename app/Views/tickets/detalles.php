@@ -1,41 +1,22 @@
-<!DOCTYPE html>
-<html lang="es" data-bs-theme="<?= tema_bootstrap() ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalles del Ticket <?= esc($ticket['codigo_ticket'] ?? '#TK-1050') ?> - HelpDesk TI</title>
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <style>
-        body { background-color: #f5f6f8; }
-        .sidebar { width: 250px; height: 100vh; position: fixed; left: 0; top: 0; background-color: #212529; color: white; padding: 20px 15px; }
-        .sidebar-title { font-size: 22px; font-weight: bold; margin-bottom: 35px; padding-left: 10px; }
-        .sidebar a { display: flex; align-items: center; gap: 12px; color: #ced4da; text-decoration: none; padding: 12px 14px; margin-bottom: 5px; border-radius: 8px; transition: 0.2s; }
-        .sidebar a:hover { background-color: #343a40; color: white; }
-        .sidebar a.active { background-color: #0d6efd; color: white; }
-        .main-content { margin-left: 250px; min-height: 100vh; }
-        .topbar { height: 75px; background-color: white; border-bottom: 1px solid #dee2e6; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
-        .page-title { font-size: 24px; font-weight: 600; }
-        .user-button { border: none; background: transparent; display: flex; align-items: center; gap: 10px; padding: 5px 10px; }
-        .user-button:hover { background-color: #f1f3f5; border-radius: 8px; }
-        .user-name { font-weight: 600; }
-        .user-role { font-size: 13px; color: #6c757d; }
-        .content { padding: 30px; }
-        .timeline { position: relative; padding-left: 20px; border-left: 2px solid #dee2e6; margin-left: 10px; }
-        .timeline-item { position: relative; margin-bottom: 20px; }
-        .timeline-item::before { content: ''; position: absolute; left: -26px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background-color: #0d6efd; border: 2px solid white; }
-    </style>
-    <?= view('layout/tema') ?>
-</head>
-<body>
+<?= $this->extend('layout/principal') ?>
+<?php
+$this->setVar('menuActivo', 'tickets');
+$this->setVar('topbar', ['pageTitle' => 'Detalles del Ticket #' . esc($ticket['codigo_ticket'] ?? 'TK-' . $ticket['id_ticket'])]);
+?>
 
-<?= view('layout/sidebar', ['active' => 'tickets']) ?>
+<?= $this->section('titulo') ?>Detalles del Ticket <?= esc($ticket['codigo_ticket'] ?? '#TK-1050') ?> - HelpDesk TI<?= $this->endSection() ?>
 
-<div class="main-content">
+<?= $this->section('estilos') ?>
+<style>
+    .timeline { position: relative; padding-left: 20px; border-left: 2px solid #dee2e6; margin-left: 10px; }
 
-    <?= view('layout/topbar', ['pageTitle' => 'Detalles del Ticket #' . esc($ticket['codigo_ticket'] ?? 'TK-' . $ticket['id_ticket'])]) ?>
+    .timeline-item { position: relative; margin-bottom: 20px; }
+
+    .timeline-item::before { content: ''; position: absolute; left: -26px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background-color: #0d6efd; border: 2px solid white; }
+</style>
+<?= $this->endSection() ?>
+
+<?= $this->section('contenido') ?>
 
     <div class="content">
         <div class="container-fluid p-0">
@@ -291,8 +272,9 @@
 
         </div>
     </div>
-</div>
+<?= $this->endSection() ?>
 
+<?= $this->section('modales') ?>
 <!-- Modal Asignar / Reasignar (Admin) -->
 <?php if ($rol === 'Administrador'): ?>
 <div class="modal fade" id="modalReasignar" tabindex="-1" aria-hidden="true">
@@ -329,10 +311,9 @@
     </div>
 </div>
 <?php endif; ?>
+<?= $this->endSection() ?>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
+<?= $this->section('scripts') ?>
 <?php if ($sla !== null && !$sla['detenido']): ?>
 <!-- Refresco del SLA cada minuto sin recargar (el cálculo oficial se hace en el servidor en cada F5) -->
 <script>
@@ -380,5 +361,4 @@
 })();
 </script>
 <?php endif; ?>
-</body>
-</html>
+<?= $this->endSection() ?>

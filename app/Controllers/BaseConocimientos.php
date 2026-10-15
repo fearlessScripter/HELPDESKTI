@@ -67,10 +67,8 @@ class BaseConocimientos extends BaseController
         }
 
         $now = date('Y-m-d H:i:s');
-        $codigo = $this->kbModel->generarCodigo();
 
-        $this->kbModel->insert([
-            'codigo_solucion'      => $codigo,
+        $creado = $this->kbModel->crearConCodigo([
             'titulo'               => $titulo,
             'contenido'            => $contenido,
             'id_autor'             => $idUsuario,
@@ -79,7 +77,7 @@ class BaseConocimientos extends BaseController
             'fecha_actualizacion'  => $now,
         ]);
 
-        $session->setFlashdata('success', "Solución {$codigo} registrada exitosamente.");
+        $session->setFlashdata('success', "Solución {$creado['codigo']} registrada exitosamente.");
         return redirect()->to('/base-conocimientos');
     }
 

@@ -119,7 +119,7 @@
                         <?php if (session()->getFlashdata('error')): ?>
                             <div class="alert alert-danger d-flex align-items-center gap-2 py-2 small" role="alert">
                                 <i class="bi bi-exclamation-octagon-fill fs-5"></i>
-                                <div><?= session()->getFlashdata('error') ?></div>
+                                <div><?= esc(session()->getFlashdata('error')) ?></div>
                             </div>
                         <?php endif; ?>
 
@@ -148,8 +148,10 @@
                             </div>
 
                             <div class="text-end mb-4">
-                                <!-- TODO: conectar con el flujo de recuperación de contraseña -->
-                                <a href="#" class="link-primary small fw-semibold text-decoration-none">¿Olvidaste tu contraseña?</a>
+                                <!-- Por ahora el restablecimiento lo hace el administrador.
+                                     A futuro: envío de un enlace al correo personal (ver app/Config/Notificaciones.php). -->
+                                <a href="#" class="link-primary small fw-semibold text-decoration-none"
+                                   data-bs-toggle="modal" data-bs-target="#recuperarClaveModal">¿Olvidaste tu contraseña?</a>
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold fs-6 py-2">
@@ -162,6 +164,30 @@
                 <div class="text-center small text-muted mt-4">
                     <i class="bi bi-shield-lock me-1"></i> Acceso exclusivo para usuarios autorizados.
                     <div class="d-lg-none mt-1">&copy; <?= date('Y') ?> <?= esc(APP_NOMBRE) ?> · Versión <?= esc(APP_VERSION) ?></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aviso de recuperación de contraseña -->
+    <div class="modal fade" id="recuperarClaveModal" tabindex="-1" aria-labelledby="recuperarClaveTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="recuperarClaveTitulo"><i class="bi bi-key me-2 text-primary"></i>Recuperar contraseña</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">Por ahora, el restablecimiento de contraseña lo realiza el <strong>administrador del sistema</strong>.</p>
+                    <p class="mb-2">Escríbele indicando el correo con el que inicias sesión:</p>
+                    <div class="d-flex align-items-center gap-2 p-3 rounded bg-light">
+                        <i class="bi bi-envelope fs-5 text-primary"></i>
+                        <a href="mailto:<?= esc(APP_CONTACTO, 'attr') ?>" class="fw-semibold text-decoration-none"><?= esc(APP_CONTACTO) ?></a>
+                    </div>
+                    <p class="small text-muted mb-0 mt-3">El administrador te asignará una contraseña nueva desde la gestión de usuarios.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary fw-semibold" data-bs-dismiss="modal">Entendido</button>
                 </div>
             </div>
         </div>

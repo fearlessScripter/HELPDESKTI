@@ -81,13 +81,15 @@ class ReporteModel
                 SUM(t.fecha_resolucion IS NOT NULL AND t.fecha_resolucion > t.fecha_vencimiento_sla) AS sla_resueltos_tarde,
                 SUM(t.fecha_resolucion IS NULL AND t.fecha_vencimiento_sla < {$ahora}) AS sla_vencidos_abiertos,
                 SUM(t.fecha_asignacion IS NOT NULL AND TIMESTAMPDIFF(MINUTE, t.fecha_creacion, t.fecha_asignacion) <= {$ola}) AS ola_cumplidos,
-                SUM(t.fecha_asignacion IS NOT NULL) AS asignados
+                SUM(t.fecha_asignacion IS NOT NULL) AS asignados,
+                SUM(t.fecha_asignacion IS NULL AND TIMESTAMPDIFF(MINUTE, t.fecha_creacion, {$ahora}) > {$ola}) AS ola_sin_asignar_vencidos
             ", false);
 
         $r = $this->aplicarFiltros($b, $f)->get()->getRowArray() ?? [];
         $r = array_map(static fn ($v) => $v === null ? null : (float)$v, $r);
 
         $evaluadosSla = ($r['sla_cumplidos'] ?? 0) + ($r['sla_resueltos_tarde'] ?? 0) + ($r['sla_vencidos_abiertos'] ?? 0);
+        $olaEvaluados = ($r['asignados'] ?? 0) + ($r['ola_sin_asignar_vencidos'] ?? 0);
         $total        = (int)($r['total'] ?? 0);
 
         return [
@@ -102,7 +104,10 @@ class ReporteModel
             'sla_evaluados'      => (int)$evaluadosSla,
             'sla_cumplimiento'   => $evaluadosSla ? round(($r['sla_cumplidos'] / $evaluadosSla) * 100) : null,
             'sla_incumplidos'    => (int)(($r['sla_resueltos_tarde'] ?? 0) + ($r['sla_vencidos_abiertos'] ?? 0)),
-            'ola_cumplimiento'   => !empty($r['asignados']) ? round(($r['ola_cumplidos'] / $r['asignados']) * 100) : null,
+            // OLA: evaluados = ya asignados + los que siguen sin asignar pasado su plazo (igual criterio que la auditoría)
+            'ola_cumplimiento'   => $olaEvaluados ? round(($r['ola_cumplidos'] / $olaEvaluados) * 100) : null,
+            'ola_evaluados'      => (int)$olaEvaluados,
+            'ola_incumplidos'    => (int)($olaEvaluados - ($r['ola_cumplidos'] ?? 0)),
             'asignados'          => (int)$r['asignados'],
             'escalados'          => $this->escalados($f),
         ];

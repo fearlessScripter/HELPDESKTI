@@ -10,6 +10,9 @@ use App\Models\UsuarioModel;
 
 class Reportes extends BaseController
 {
+    /** Máximo de tickets de la auditoría que se incluyen al imprimir / exportar a PDF. */
+    private const MAX_AUDITORIA_IMPRESION = 500;
+
     private function soloAdmin()
     {
         $session = session();
@@ -90,6 +93,12 @@ class Reportes extends BaseController
             ->orderBy('tickets.fecha_creacion', 'DESC')
             ->paginate(10, 'auditoria');
 
+        // Para imprimir / PDF: la auditoría completa (con tope para no generar documentos gigantes)
+        $auditoriaCompleta = $this->queryTickets(new TicketModel(), $filtros)
+            ->where($reporte->sqlIncumplimiento(), null, false)
+            ->orderBy('tickets.fecha_creacion', 'DESC')
+            ->findAll(self::MAX_AUDITORIA_IMPRESION);
+
         $data = [
             'id_usuario'      => (int)$session->get('id_usuario'),
             'nombre'          => $session->get('nombre_completo'),
@@ -102,6 +111,8 @@ class Reportes extends BaseController
             'porPrioridad'    => $reporte->porPrioridad($filtros),
             'tecnicosDesempeno' => $reporte->desempenoTecnicos($filtros),
             'auditoria'       => $auditoria,
+            'auditoriaCompleta' => $auditoriaCompleta,
+            'maxAuditoriaImpresion' => self::MAX_AUDITORIA_IMPRESION,
             'pager'           => $ticketModel->pager,
             'areas'           => (new AreaModel())->getActivas(),
             'tecnicos'        => (new UsuarioModel())->where('id_rol', 2)->orderBy('nombre_completo')->findAll(),

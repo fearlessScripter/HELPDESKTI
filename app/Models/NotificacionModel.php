@@ -19,6 +19,10 @@ class NotificacionModel extends Model
         'fecha_creacion',
     ];
 
+    /**
+     * Guarda una notificación del sistema. Para notificar a usuarios usar App\Libraries\Notificador
+     * (que la entrega por todos los canales activos); este método es el almacenamiento del canal "sistema".
+     */
     public function crear(int $idUsuario, string $mensaje, string $tipoAlerta = 'info', ?int $idTicket = null)
     {
         return $this->insert([
@@ -80,14 +84,5 @@ class NotificacionModel extends Model
              ->where('leida', 0)
              ->set('leida', 1)
              ->update();
-    }
-
-    public function notificarAdministradores(string $mensaje, string $tipoAlerta = 'alerta', ?int $idTicket = null)
-    {
-        $db = \Config\Database::connect();
-        $admins = $db->table('usuarios')->where('id_rol', 1)->where('estado', 'activo')->get()->getResultArray();
-        foreach ($admins as $admin) {
-            $this->crear((int)$admin['id_usuario'], $mensaje, $tipoAlerta, $idTicket);
-        }
     }
 }

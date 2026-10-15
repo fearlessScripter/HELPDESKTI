@@ -10,6 +10,7 @@ use App\Models\NotificacionModel;
 use App\Models\BaseConocimientoModel;
 use App\Models\EstadoTicketModel;
 use App\Models\PrioridadModel;
+use App\Libraries\Notificador;
 
 class Tickets extends BaseController
 {
@@ -19,9 +20,11 @@ class Tickets extends BaseController
     protected HistorialTicketModel $historialModel;
     protected NotificacionModel $notificacionModel;
     protected BaseConocimientoModel $kbModel;
+    protected Notificador $notificador;
 
     public function __construct()
     {
+        $this->notificador       = new Notificador();
         $this->ticketModel       = new TicketModel();
         $this->usuarioModel      = new UsuarioModel();
         $this->areaModel         = new AreaModel();
@@ -144,12 +147,8 @@ class Tickets extends BaseController
         $now = date('Y-m-d H:i:s', $ahora);
         $fechaVencimientoSla = date('Y-m-d H:i:s', $ahora + $minutosSla * 60);
 
-        // 2. Generar código
-        $codigo = $this->ticketModel->generarCodigo();
-
-        // 3. Insertar ticket
-        $idTicket = $this->ticketModel->insert([
-            'codigo_ticket'         => $codigo,
+        // 2-3. Insertar ticket con su código correlativo (TK-xxxx), seguro ante creaciones simultáneas
+        $creado = $this->ticketModel->crearConCodigo([
             'id_solicitante'        => $data['id_usuario'],
             'id_tecnico_asignado'   => null,
             'id_area_afectada'      => $idArea,
@@ -166,6 +165,8 @@ class Tickets extends BaseController
             'fecha_cierre'          => null,
             'fecha_vencimiento_sla' => $fechaVencimientoSla,
         ]);
+        $idTicket = $creado['id'];
+        $codigo   = $creado['codigo'];
 
         // 4. Registrar en historial
         $this->historialModel->registrarAccion(
@@ -176,7 +177,7 @@ class Tickets extends BaseController
         );
 
         // 5. Notificar administradores
-        $this->notificacionModel->notificarAdministradores(
+        $this->notificador->enviarAAdministradores(
             "Nuevo ticket #{$codigo} en cola pendiente: {$asunto}",
             'alerta',
             $idTicket
@@ -311,14 +312,14 @@ class Tickets extends BaseController
             "Asignado al técnico {$tecnico['nombre_completo']}. Estado cambiado a En Proceso."
         );
 
-        $this->notificacionModel->crear(
+        $this->notificador->enviar(
             $idTecnico,
             "Se te asignó el ticket #{$ticket['codigo_ticket']}: {$ticket['asunto']}",
             'asignacion',
             $idTicket
         );
 
-        $this->notificacionModel->crear(
+        $this->notificador->enviar(
             (int)$ticket['id_solicitante'],
             "Tu ticket #{$ticket['codigo_ticket']} ahora está En Proceso, asignado a {$tecnico['nombre_completo']}.",
             'info',
@@ -362,14 +363,14 @@ class Tickets extends BaseController
             "Reasignado al técnico {$tecnico['nombre_completo']}." . ($motivo ? " Motivo: {$motivo}" : '')
         );
 
-        $this->notificacionModel->crear(
+        $this->notificador->enviar(
             $idTecnico,
             "Reasignación: Se te transfirió el ticket #{$ticket['codigo_ticket']}: {$ticket['asunto']}",
             'asignacion',
             $idTicket
         );
 
-        $this->notificacionModel->crear(
+        $this->notificador->enviar(
             (int)$ticket['id_tecnico_asignado'],
             "El ticket #{$ticket['codigo_ticket']} fue reasignado a otro técnico.",
             'info',
@@ -459,7 +460,7 @@ class Tickets extends BaseController
         );
 
         // Notificar al solicitante para que revise y cierre
-        $this->notificacionModel->crear(
+        $this->notificador->enviar(
             (int)$ticket['id_solicitante'],
             "El técnico resolvió tu ticket #{$ticket['codigo_ticket']}. Por favor confirma y cierra la solicitud.",
             'resolucion',
@@ -509,9 +510,7 @@ class Tickets extends BaseController
 
         // Archivar la solución aplicada en la Base de Conocimientos (una sola vez por ticket)
         if (!empty($ticket['solucion_aplicada']) && !$this->kbModel->existePorTicket($idTicket)) {
-            $codigoSol = $this->kbModel->generarCodigo();
-            $this->kbModel->insert([
-                'codigo_solucion'      => $codigoSol,
+            $this->kbModel->crearConCodigo([
                 'titulo'               => $ticket['asunto'],
                 'contenido'            => $ticket['solucion_aplicada'],
                 'id_autor'             => $ticket['id_tecnico_asignado'] ?? $data['id_usuario'],
@@ -523,7 +522,7 @@ class Tickets extends BaseController
 
         // Notificar al técnico asignado si existe
         if (!empty($ticket['id_tecnico_asignado'])) {
-            $this->notificacionModel->crear(
+            $this->notificador->enviar(
                 (int)$ticket['id_tecnico_asignado'],
                 "El ticket #{$ticket['codigo_ticket']} ha sido validado y cerrado exitosamente por el solicitante.",
                 'info',

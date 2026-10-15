@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\CodigoCorrelativo;
 use CodeIgniter\Model;
 
 class TicketModel extends Model
 {
+    use CodigoCorrelativo;
+
     protected $table            = 'tickets';
     protected $primaryKey       = 'id_ticket';
     protected $returnType       = 'array';
@@ -73,18 +76,14 @@ class TicketModel extends Model
     }
 
     /**
-     * Genera un código autoincremental tipo TK-1001, TK-1002...
+     * Crea el ticket asignándole el siguiente código (TK-1001, TK-1002...) sin choques entre
+     * creaciones simultáneas.
+     *
+     * @return array{id: int, codigo: string}
      */
-    public function generarCodigo(): string
+    public function crearConCodigo(array $datos): array
     {
-        $ultimo = $this->orderBy('id_ticket', 'DESC')->first();
-        $siguiente = 1001;
-        if ($ultimo && !empty($ultimo['codigo_ticket']) && preg_match('/TK-(\d+)/', $ultimo['codigo_ticket'], $matches)) {
-            $siguiente = (int)$matches[1] + 1;
-        } elseif ($ultimo && !empty($ultimo['id_ticket'])) {
-            $siguiente = 1000 + (int)$ultimo['id_ticket'] + 1;
-        }
-        return 'TK-' . $siguiente;
+        return $this->insertarConCodigoCorrelativo($datos, 'codigo_ticket', 'TK-', 1001);
     }
 
     /**

@@ -130,7 +130,7 @@ if (!isset($notificaciones)) {
 <div class="container-fluid px-4 pt-3">
     <div class="alert alert-success alert-dismissible fade show shadow-sm mb-0" role="alert">
         <i class="bi bi-check-circle-fill me-2"></i>
-        <?= session()->getFlashdata('success') ?>
+        <?= esc(session()->getFlashdata('success')) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 </div>
@@ -140,7 +140,7 @@ if (!isset($notificaciones)) {
 <div class="container-fluid px-4 pt-3">
     <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-0" role="alert">
         <i class="bi bi-exclamation-octagon-fill me-2"></i>
-        <?= session()->getFlashdata('error') ?>
+        <?= esc(session()->getFlashdata('error')) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 </div>

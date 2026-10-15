@@ -48,7 +48,7 @@ class Routing extends BaseRouting
      *
      * Default: 'Home'
      */
-    public string $defaultController = 'Home';
+    public string $defaultController = 'Auth'; // '/' ya apunta a Auth::index en Routes.php
 
     /**
      * For Defined Routes and Auto Routing.

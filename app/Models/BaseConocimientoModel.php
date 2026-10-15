@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\CodigoCorrelativo;
 use CodeIgniter\Model;
 
 class BaseConocimientoModel extends Model
 {
+    use CodigoCorrelativo;
+
     protected $table            = 'base_conocimientos';
     protected $primaryKey       = 'id_solucion';
     protected $returnType       = 'array';
@@ -78,13 +81,14 @@ class BaseConocimientoModel extends Model
         return $this->where('id_ticket_referencia', $idTicket)->countAllResults() > 0;
     }
 
-    public function generarCodigo(): string
+    /**
+     * Crea el artículo asignándole el siguiente código (SOL-101, SOL-102...) sin choques entre
+     * creaciones simultáneas (ej. dos tickets cerrados al mismo tiempo).
+     *
+     * @return array{id: int, codigo: string}
+     */
+    public function crearConCodigo(array $datos): array
     {
-        $ultimo = $this->orderBy('id_solucion', 'DESC')->first();
-        $siguienteNumero = 101;
-        if ($ultimo && preg_match('/SOL-(\d+)/', $ultimo['codigo_solucion'], $matches)) {
-            $siguienteNumero = (int)$matches[1] + 1;
-        }
-        return 'SOL-' . $siguienteNumero;
+        return $this->insertarConCodigoCorrelativo($datos, 'codigo_solucion', 'SOL-', 101);
     }
 }
