@@ -25,9 +25,9 @@ $this->setVar('topbar', ['pageTitle' => 'Nuevo Ticket']);
                                 <?= csrf_field() ?>
                                 
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold" for="id_area_afectada">Área Afectada <span class="text-danger">*</span></label>
+                                    <label class="form-label fw-bold" for="id_area_afectada">¿Con qué servicio o sistema tienes el problema? <span class="text-danger">*</span></label>
                                     <select class="form-select" id="id_area_afectada" name="id_area_afectada" required>
-                                        <option value="" selected disabled>Selecciona el área del problema...</option>
+                                        <option value="" selected disabled>Selecciona el servicio o sistema...</option>
                                         <?php if (!empty($areas)): ?>
                                             <?php foreach ($areas as $area): ?>
                                                 <option value="<?= esc($area['id_area']) ?>"><?= esc($area['nombre']) ?></option>
@@ -45,25 +45,32 @@ $this->setVar('topbar', ['pageTitle' => 'Nuevo Ticket']);
                                     <input type="text" class="form-control" id="asunto" name="asunto" placeholder="Ej: No me enciende el computador o no tengo internet" required>
                                 </div>
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label fw-bold" for="nivel_impacto">Nivel de Impacto (Alcance del problema) <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="nivel_impacto" name="nivel_impacto" required>
-                                            <option value="" selected disabled>Selecciona el impacto...</option>
-                                            <option value="bajo">Bajo (Afecta solo a mí)</option>
-                                            <option value="medio">Medio (Afecta a mi departamento)</option>
-                                            <option value="alto">Alto (Afecta a toda la empresa)</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label class="form-label fw-bold" for="nivel_urgencia">Nivel de Urgencia (Rapidez necesaria) <span class="text-danger">*</span></label>
-                                        <select class="form-select" id="nivel_urgencia" name="nivel_urgencia" required>
-                                            <option value="" selected disabled>Selecciona la urgencia...</option>
-                                            <option value="baja">Baja (Puedo seguir trabajando)</option>
-                                            <option value="media">Media (Dificulta mi trabajo)</option>
-                                            <option value="alta">Alta (Trabajo totalmente detenido)</option>
-                                        </select>
-                                    </div>
+                                <!--
+                                    El usuario describe su situación; el sistema calcula la prioridad (TicketModel::calcularPrioridad).
+                                    Los valores internos no cambian: dos opciones pueden compartir el mismo valor.
+                                -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="nivel_impacto">¿A quiénes está afectando este problema? <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="nivel_impacto" name="nivel_impacto" required aria-describedby="ayudaImpacto">
+                                        <option value="" selected disabled>Selecciona una opción...</option>
+                                        <option value="bajo">Solo a mí</option>
+                                        <option value="medio">A varias personas de mi área</option>
+                                        <option value="alto">A toda mi área o a varias áreas</option>
+                                        <option value="alto">A gran parte de la institución</option>
+                                    </select>
+                                    <div class="form-text" id="ayudaImpacto">Indica cuántas personas o qué grupo de trabajo tienen el mismo problema.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold" for="nivel_urgencia">¿Cómo afecta este problema a tu trabajo? <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="nivel_urgencia" name="nivel_urgencia" required aria-describedby="ayudaUrgencia">
+                                        <option value="" selected disabled>Selecciona una opción...</option>
+                                        <option value="baja">Puedo seguir trabajando con normalidad</option>
+                                        <option value="media">Puedo trabajar, pero con limitaciones o de otra forma</option>
+                                        <option value="alta">No puedo realizar una tarea importante y no tengo otra forma de hacerla</option>
+                                        <option value="alta">No puedo continuar con mi trabajo</option>
+                                    </select>
+                                    <div class="form-text" id="ayudaUrgencia">Considera si puedes seguir trabajando y si tienes otra forma de realizar la tarea.</div>
                                 </div>
 
                                 <div class="mb-4">

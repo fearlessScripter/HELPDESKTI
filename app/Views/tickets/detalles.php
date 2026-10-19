@@ -99,8 +99,10 @@ $this->setVar('topbar', ['pageTitle' => 'Detalles del Ticket #' . esc($ticket['c
                             <ul class="list-unstyled mb-0">
                                 <li class="mb-2"><strong>Código:</strong> #<?= esc($ticket['codigo_ticket']) ?></li>
                                 <li class="mb-2"><strong>Área Afectada:</strong> <?= esc($ticket['area_nombre']) ?></li>
+                                <?php $verSla = ($rol !== 'Solicitante'); // El solicitante no ve impacto/urgencia ni información de SLA ?>
+                                <?php if ($verSla): ?>
                                 <li class="mb-2"><strong>Impacto / Urgencia:</strong> <?= ucfirst(esc($ticket['nivel_impacto'])) ?> / <?= ucfirst(esc($ticket['nivel_urgencia'])) ?></li>
-                                <?php $verSla = ($rol !== 'Solicitante'); // El solicitante no ve información de SLA ?>
+                                <?php endif; ?>
                                 <li class="mb-2"><strong>Prioridad:</strong>
                                     <?php // El solicitante ve la prioridad (con su color) pero no el plazo SLA ?>
                                     <?= badge_prioridad($ticket['prioridad_nombre'], $verSla ? (int)$ticket['sla_minutos'] : null, 'SLA ') ?>
