@@ -5,12 +5,17 @@ $rol = $session->get('rol');
 $idUsuario = (int)$session->get('id_usuario');
 $pageTitle = $pageTitle ?? 'Inicio';
 
+$notifModel = new \App\Models\NotificacionModel();
+
 // Cargar notificaciones dinámicas si no vienen inyectadas
 if (!isset($notificaciones)) {
-    $notifModel = new \App\Models\NotificacionModel();
     $notificaciones = $notifModel->getPorUsuario($idUsuario, 5);
     $conteoNoLeidas = $notifModel->getConteoNoLeidas($idUsuario);
 }
+$conteoNoLeidas = (int)($conteoNoLeidas ?? 0);
+
+// Marca para la actualización en tiempo real: solo se avisa lo que llegue después de esta carga
+$ultimoIdNotif = $notifModel->getUltimoId($idUsuario);
 ?>
 <div class="topbar">
 
@@ -23,54 +28,19 @@ if (!isset($notificaciones)) {
             <?= $topbarButton ?>
         <?php endif; ?>
 
-        <!-- Notificaciones -->
-        <div class="dropdown">
-            <button type="button" class="btn btn-light position-relative" data-bs-toggle="dropdown" aria-expanded="false" title="Notificaciones">
+        <!-- Notificaciones (se actualizan en tiempo real, ver layout/tiempo_real) -->
+        <div class="dropdown" data-notificaciones
+             data-url="<?= base_url('/notificaciones/estado') ?>"
+             data-ultimo="<?= $ultimoIdNotif ?>"
+             data-conteo="<?= $conteoNoLeidas ?>">
+            <button type="button" class="btn btn-light position-relative" data-bs-toggle="dropdown" aria-expanded="false" title="Notificaciones" data-notif-campana>
                 <i class="bi bi-bell fs-5"></i>
-                <?php if (!empty($conteoNoLeidas) && $conteoNoLeidas > 0): ?>
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    <?= esc($conteoNoLeidas) ?>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger<?= $conteoNoLeidas > 0 ? '' : ' d-none' ?>" data-notif-conteo>
+                    <?= $conteoNoLeidas > 99 ? '99+' : $conteoNoLeidas ?>
                 </span>
-                <?php endif; ?>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 360px; max-height: 400px; overflow-y: auto;">
-                <li class="d-flex justify-content-between align-items-center pe-2">
-                    <h6 class="dropdown-header fw-bold">Notificaciones Recientes</h6>
-                    <?php if (!empty($conteoNoLeidas) && $conteoNoLeidas > 0): ?>
-                    <form action="<?= base_url('/notificaciones/leer-todas') ?>" method="post" class="m-0">
-                        <?= csrf_field() ?>
-                        <button type="submit" class="btn btn-link btn-sm text-decoration-none p-0" style="font-size: 12px;">
-                            <i class="bi bi-check2-all"></i> Marcar todas como leídas
-                        </button>
-                    </form>
-                    <?php endif; ?>
-                </li>
-                <?php if (!empty($notificaciones)): ?>
-                    <?php foreach ($notificaciones as $n): ?>
-                        <?php $noLeida = (int)$n['leida'] === 0; ?>
-                        <li>
-                            <a class="dropdown-item text-wrap py-2 <?= $noLeida ? 'fw-semibold bg-primary-subtle' : 'text-secondary' ?>" href="<?= base_url('/notificaciones/leer/' . $n['id_notificacion']) ?>">
-                                <?php if ($noLeida): ?>
-                                    <i class="bi bi-circle-fill text-primary me-1" style="font-size: 8px;" title="No leída"></i>
-                                <?php endif; ?>
-                                <?php if ($n['tipo_alerta'] === 'alerta' || $n['tipo_alerta'] === 'sla_vencido' || $n['tipo_alerta'] === 'urgente'): ?>
-                                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
-                                <?php elseif ($n['tipo_alerta'] === 'resolucion'): ?>
-                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                <?php elseif ($n['tipo_alerta'] === 'asignacion'): ?>
-                                    <i class="bi bi-gear-fill text-primary me-2"></i>
-                                <?php else: ?>
-                                    <i class="bi bi-info-circle-fill text-info me-2"></i>
-                                <?php endif; ?>
-                                <span><?= esc($n['mensaje']) ?></span>
-                                <br><small class="text-muted ms-4" style="font-size: 11px;"><?= esc(fecha_hora($n['fecha_creacion'])) ?></small>
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <li><span class="dropdown-item text-muted small py-2">No tienes notificaciones pendientes.</span></li>
-                <?php endif; ?>
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 360px; max-height: 400px; overflow-y: auto;" data-notif-menu>
+                <?= view('layout/notificaciones_menu', ['notificaciones' => $notificaciones, 'conteoNoLeidas' => $conteoNoLeidas]) ?>
             </ul>
         </div>
 

@@ -86,3 +86,19 @@ if (!function_exists('nombre_con_rol')) {
         return $rol ? "{$nombre} ({$rol})" : $nombre;
     }
 }
+
+if (!function_exists('icono_notificacion')) {
+    /**
+     * Ícono de Bootstrap Icons (con su color) según el tipo de notificación.
+     * Lo usan el menú de la campana y los avisos en tiempo real.
+     */
+    function icono_notificacion(?string $tipo): string
+    {
+        return match ($tipo) {
+            'alerta', 'sla_vencido', 'urgente' => 'bi-exclamation-triangle-fill text-warning',
+            'resolucion'                       => 'bi-check-circle-fill text-success',
+            'asignacion'                       => 'bi-gear-fill text-primary',
+            default                            => 'bi-info-circle-fill text-info',
+        };
+    }
+}

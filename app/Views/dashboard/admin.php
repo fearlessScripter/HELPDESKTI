@@ -9,7 +9,7 @@ $this->setVar('topbar', ['pageTitle' => 'Inicio Administrador']);
 <?= $this->section('contenido') ?>
 
     <!-- CONTENIDO -->
-    <div class="content">
+    <div class="content" data-region="panel" data-tiempo-real>
 
         <div class="mb-4">
             <h2 class="fw-bold">Hola, <?= esc($nombre) ?> (<?= esc($rol) ?>)</h2>

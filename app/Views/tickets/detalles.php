@@ -18,7 +18,7 @@ $this->setVar('topbar', ['pageTitle' => 'Detalles del Ticket #' . esc($ticket['c
 
 <?= $this->section('contenido') ?>
 
-    <div class="content">
+    <div class="content" data-ticket-actual="<?= (int)$ticket['id_ticket'] ?>">
         <div class="container-fluid p-0">
             <div class="row">
                 <!-- Columna Izquierda: Información del Problema y Trazabilidad -->
@@ -99,14 +99,13 @@ $this->setVar('topbar', ['pageTitle' => 'Detalles del Ticket #' . esc($ticket['c
                             <ul class="list-unstyled mb-0">
                                 <li class="mb-2"><strong>Código:</strong> #<?= esc($ticket['codigo_ticket']) ?></li>
                                 <li class="mb-2"><strong>Área Afectada:</strong> <?= esc($ticket['area_nombre']) ?></li>
-                                <?php $verSla = ($rol !== 'Solicitante'); // El solicitante no ve impacto/urgencia ni información de SLA ?>
+                                <?php $verSla = ($rol !== 'Solicitante'); // El solicitante no ve impacto/urgencia, prioridad ni información de SLA ?>
                                 <?php if ($verSla): ?>
                                 <li class="mb-2"><strong>Impacto / Urgencia:</strong> <?= ucfirst(esc($ticket['nivel_impacto'])) ?> / <?= ucfirst(esc($ticket['nivel_urgencia'])) ?></li>
-                                <?php endif; ?>
                                 <li class="mb-2"><strong>Prioridad:</strong>
-                                    <?php // El solicitante ve la prioridad (con su color) pero no el plazo SLA ?>
-                                    <?= badge_prioridad($ticket['prioridad_nombre'], $verSla ? (int)$ticket['sla_minutos'] : null, 'SLA ') ?>
+                                    <?= badge_prioridad($ticket['prioridad_nombre'], (int)$ticket['sla_minutos'], 'SLA ') ?>
                                 </li>
+                                <?php endif; ?>
                                 <li class="mb-2"><strong>Técnico Asignado:</strong>
                                     <?= !empty($ticket['tecnico_nombre']) ? esc($ticket['tecnico_nombre']) : '<span class="text-danger fw-semibold">Sin asignar (En cola)</span>' ?>
                                 </li>

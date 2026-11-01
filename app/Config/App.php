@@ -199,4 +199,52 @@ class App extends BaseConfig
      * @see http://www.w3.org/TR/CSP/
      */
     public bool $CSPEnabled = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->permitirHostDeRedPrivada();
+    }
+
+    /**
+     * Permite usar el sistema desde otros equipos de la red local o de Tailscale sin editar baseURL.
+     *
+     * CodeIgniter arma los enlaces y redirecciones (base_url, redirect) con el host de baseURL,
+     * salvo que el host de la petición esté en $allowedHostnames. aqui se agrega el host actual
+     * solo si es privado: localhost, red local (10.x, 172.16-31.x, 192.168.x), Tailscale
+     * (100.64.0.0/10 y nombres *.ts.net) o un nombre de equipo sin dominio. Un host público
+     * nunca se acepta. El protocolo y el puerto se siguen tomando de baseURL.
+     */
+    private function permitirHostDeRedPrivada(): void
+    {
+        $hostPuerto = $_SERVER['HTTP_HOST'] ?? '';
+        if ($hostPuerto === '') {
+            return; // línea de comandos (spark)
+        }
+
+        $host = explode(':', $hostPuerto, 2)[0];
+        if (!in_array($host, $this->allowedHostnames, true) && self::esHostPrivado(strtolower($host))) {
+            $this->allowedHostnames[] = $host;
+        }
+    }
+
+    private static function esHostPrivado(string $host): bool
+    {
+        if (filter_var($host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+            $ip = ip2long($host);
+            foreach (['127.0.0.0/8', '10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', '100.64.0.0/10'] as $rango) {
+                [$red, $bits] = explode('/', $rango);
+                $mascara = -1 << (32 - (int)$bits);
+                if (($ip & $mascara) === (ip2long($red) & $mascara)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        return $host === 'localhost'
+            || preg_match('/^[a-z0-9-]+$/', $host) === 1                    // nombre de equipo (MagicDNS corto)
+            || preg_match('/^([a-z0-9-]+\.)+ts\.net$/', $host) === 1;       // MagicDNS de Tailscale
+    }
 }

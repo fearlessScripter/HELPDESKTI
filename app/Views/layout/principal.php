@@ -7,6 +7,9 @@
  *   <?php $this->setVar('menuActivo', 'tickets'); ?>                  // ítem resaltado del menú lateral
  *   <?php $this->setVar('topbar', ['pageTitle' => 'Mis Tickets']); ?>  // datos de la barra superior
  * y llena las secciones: titulo, estilos (opcional), contenido, modales (opcional), scripts (opcional).
+ *
+ * Un contenedor con data-region="nombre" data-tiempo-real se refresca solo cuando al usuario le
+ * llega una notificación nueva (ver layout/tiempo_real).
  */
 ?>
 <!DOCTYPE html>
@@ -36,6 +39,7 @@
 <?= $this->renderSection('modales') ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<?= view('layout/tiempo_real') ?>
 <?= $this->renderSection('scripts') ?>
 </body>
 </html>

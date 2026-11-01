@@ -14,7 +14,7 @@ $this->setVar('topbar', ['pageTitle' => 'Inicio']);
     <!-- CONTENIDO -->
     <!-- ================================================= -->
 
-    <div class="content">
+    <div class="content" data-region="panel" data-tiempo-real>
 
         <div class="mb-4">
             <h2 class="fw-bold">Hola, <?= esc($nombre) ?></h2>

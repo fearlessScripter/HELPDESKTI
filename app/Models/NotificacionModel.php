@@ -42,6 +42,32 @@ class NotificacionModel extends Model
                     ->findAll($limit);
     }
 
+    /**
+     * Id de la notificación más reciente del usuario (0 si no tiene ninguna).
+     * La campana en tiempo real lo usa como marca para saber qué llegó después de cargar la página.
+     */
+    public function getUltimoId(int $idUsuario): int
+    {
+        $fila = $this->select('id_notificacion')
+                     ->where('id_usuario', $idUsuario)
+                     ->orderBy('id_notificacion', 'DESC')
+                     ->first();
+
+        return (int)($fila['id_notificacion'] ?? 0);
+    }
+
+    /**
+     * Notificaciones sin leer creadas después de $desdeId (las más nuevas primero).
+     */
+    public function getNuevasDesde(int $idUsuario, int $desdeId, int $limit = 5): array
+    {
+        return $this->where('id_usuario', $idUsuario)
+                    ->where('id_notificacion >', $desdeId)
+                    ->where('leida', 0)
+                    ->orderBy('id_notificacion', 'DESC')
+                    ->findAll($limit);
+    }
+
     public function getConteoNoLeidas(int $idUsuario): int
     {
         return $this->where('id_usuario', $idUsuario)

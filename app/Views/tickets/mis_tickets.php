@@ -34,7 +34,7 @@ $this->setVar('topbar', ['pageTitle' => 'Mis Tickets']);
         <!-- TABLA DE TICKETS -->
         <!-- ================================================= -->
 
-        <div class="ticket-table" data-region="resultados">
+        <div class="ticket-table" data-region="resultados" data-tiempo-real>
             <table class="table table-hover align-middle mb-0">
 
                 <thead class="table-light">

@@ -183,7 +183,9 @@ class Tickets extends BaseController
             $idTicket
         );
 
-        session()->setFlashdata('success', "¡Ticket #{$codigo} registrado exitosamente con prioridad {$prioInfo['nombre']}!");
+        // El solicitante no ve la prioridad; el administrador sí
+        $conPrioridad = $data['rol'] === 'Solicitante' ? '' : " con prioridad {$prioInfo['nombre']}";
+        session()->setFlashdata('success', "¡Ticket #{$codigo} registrado exitosamente{$conPrioridad}!");
         return redirect()->to('/tickets/mis-tickets');
     }
 
@@ -215,7 +217,12 @@ class Tickets extends BaseController
 
         $filtros = $this->leerFiltros();
         if ($data['rol'] === 'Solicitante') {
-            $filtros['sla'] = ''; // el solicitante no trabaja con SLA
+            // El solicitante no trabaja con SLA ni ve la prioridad (tampoco escribiéndolos en la URL)
+            $filtros['sla']          = '';
+            $filtros['id_prioridad'] = 0;
+            if (!in_array($filtros['orden'], ['recientes', 'antiguos'], true)) {
+                $filtros['orden'] = '';
+            }
         }
 
         $query = $this->ticketModel->queryMisTickets($data['id_usuario'], $data['rol']);
@@ -264,6 +271,15 @@ class Tickets extends BaseController
         $data['ticket_id'] = $ticket['codigo_ticket'];
         $data['historial'] = $this->historialModel->getHistorialPorTicket((int)$ticket['id_ticket']);
         $data['tecnicos']  = $this->usuarioModel->getTecnicos();
+
+        // El solicitante no ve la prioridad: se quita del registro "Ticket creado con prioridad x como estaba antes"
+        // (el historial guardado no cambia, el administrador y el técnico lo siguen viendo completo)
+        if ($data['rol'] === 'Solicitante') {
+            $data['historial'] = array_map(static function (array $h) {
+                $h['descripcion'] = preg_replace('/\s+con prioridad [^.]+/u', '', (string)$h['descripcion']);
+                return $h;
+            }, $data['historial']);
+        }
 
         return view('tickets/detalles', $data);
     }

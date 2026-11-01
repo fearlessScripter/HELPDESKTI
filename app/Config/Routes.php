@@ -40,6 +40,7 @@ $routes->post('/base-conocimientos/actualizar', 'BaseConocimientos::actualizar')
 $routes->post('/perfil/tema', 'Perfil::tema');
 
 // Notificaciones
+$routes->get('/notificaciones/estado', 'Notificaciones::estado');
 $routes->get('/notificaciones/leer/(:num)', 'Notificaciones::leer/$1');
 $routes->post('/notificaciones/leer-todas', 'Notificaciones::leerTodas');
 
