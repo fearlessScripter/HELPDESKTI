@@ -317,6 +317,8 @@ $this->setVar('topbar', ['pageTitle' => 'Gestión de Accesos']);
             <form action="<?= base_url('/usuarios/estado') ?>" method="post">
                 <?= csrf_field() ?>
                 <input type="hidden" name="id_usuario" id="estadoId">
+                <!-- "habilitar" o "deshabilitar": si el envío llega dos veces, el segundo no deshace al primero -->
+                <input type="hidden" name="accion" id="estadoAccion">
                 <div class="modal-header bg-light">
                     <h5 class="modal-title fw-bold" id="estadoTitulo">Deshabilitar Usuario</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -376,6 +378,7 @@ alHacerClic('.btn-estado', function (btn) {
     var nombre = document.createElement('strong');
     nombre.textContent = btn.dataset.nombre;
     document.getElementById('estadoId').value = btn.dataset.id;
+    document.getElementById('estadoAccion').value = activo ? 'deshabilitar' : 'habilitar';
     document.getElementById('estadoTitulo').textContent = activo ? 'Deshabilitar Usuario' : 'Habilitar Usuario';
     var texto = document.getElementById('estadoTexto');
     texto.innerHTML = '';

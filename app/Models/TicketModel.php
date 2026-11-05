@@ -15,6 +15,7 @@ class TicketModel extends Model
     protected $useAutoIncrement = true;
     protected $allowedFields    = [
         'codigo_ticket',
+        'token_envio',
         'id_solicitante',
         'id_tecnico_asignado',
         'id_area_afectada',
@@ -84,6 +85,20 @@ class TicketModel extends Model
     public function crearConCodigo(array $datos): array
     {
         return $this->insertarConCodigoCorrelativo($datos, 'codigo_ticket', 'TK-', 1001);
+    }
+
+    /**
+     * Ticket que ya se creó con este token de envío (el mismo formulario enviado otra vez), o null.
+     *
+     * @return array{id_ticket: int, codigo_ticket: string, prioridad_nombre: ?string}|null
+     */
+    public function buscarPorTokenEnvio(string $token, int $idSolicitante): ?array
+    {
+        return $this->select('tickets.id_ticket, tickets.codigo_ticket, prioridades.nombre AS prioridad_nombre')
+                    ->join('prioridades', 'prioridades.id_prioridad = tickets.id_prioridad', 'left')
+                    ->where('tickets.token_envio', $token)
+                    ->where('tickets.id_solicitante', $idSolicitante)
+                    ->first();
     }
 
     /**

@@ -198,6 +198,7 @@ class Usuarios extends BaseController
         $session = session();
 
         $id      = (int)$this->request->getPost('id_usuario');
+        $accion  = (string)$this->request->getPost('accion');
         $usuario = $this->usuarioModel->find($id);
 
         if (!$usuario) {
@@ -210,7 +211,21 @@ class Usuarios extends BaseController
             return redirect()->back();
         }
 
-        $nuevoEstado = $usuario['estado'] === 'activo' ? 'inactivo' : 'activo';
+        // El formulario indica el estado que se quiere, no "invertir el actual": así, si el envío
+        // llega dos veces (doble clic, Atrás y reenviar), el segundo no deshace al primero.
+        if (!in_array($accion, ['habilitar', 'deshabilitar'], true)) {
+            $session->setFlashdata('error', 'Acción no válida. Vuelve a intentarlo desde la lista de usuarios.');
+            return redirect()->back();
+        }
+
+        $nuevoEstado  = $accion === 'deshabilitar' ? 'inactivo' : 'activo';
+        $mensajeExito = "Usuario {$usuario['nombre_completo']} " . ($nuevoEstado === 'activo' ? 'habilitado' : 'deshabilitado') . ' correctamente.';
+
+        // Ya estaba en ese estado (envío repetido): no se cambia nada y se confirma igual
+        if ($usuario['estado'] === $nuevoEstado) {
+            $session->setFlashdata('success', $mensajeExito);
+            return redirect()->back();
+        }
 
         if ($nuevoEstado === 'inactivo' && (int)$usuario['id_rol'] === 2 && ($pendientes = $this->ticketsEnProceso($id)) > 0) {
             $session->setFlashdata('error', "No se puede deshabilitar a {$usuario['nombre_completo']}: tiene {$pendientes} ticket(s) En Proceso. Reasígnalos primero.");
@@ -219,8 +234,7 @@ class Usuarios extends BaseController
 
         $this->usuarioModel->update($id, ['estado' => $nuevoEstado]);
 
-        $accion = $nuevoEstado === 'activo' ? 'habilitado' : 'deshabilitado';
-        $session->setFlashdata('success', "Usuario {$usuario['nombre_completo']} {$accion} correctamente.");
+        $session->setFlashdata('success', $mensajeExito);
         return redirect()->back();
     }
 

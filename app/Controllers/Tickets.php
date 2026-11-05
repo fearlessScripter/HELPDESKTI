@@ -119,7 +119,19 @@ class Tickets extends BaseController
         if (!$this->puedeCrearTickets($data)) return redirect()->to('/dashboard');
 
         $data['areas'] = $this->areaModel->getActivas();
+        // Token de envío único: identifica ESTE formulario abierto (ver crear())
+        $data['tokenEnvio'] = bin2hex(random_bytes(16));
         return view('tickets/nuevo', $data);
+    }
+
+    /**
+     * Mensaje de éxito y vuelta a Mis tickets (el solicitante no ve la prioridad; el administrador sí).
+     */
+    private function redirigirTicketRegistrado(array $data, string $codigo, ?string $prioridad)
+    {
+        $conPrioridad = ($data['rol'] === 'Solicitante' || empty($prioridad)) ? '' : " con prioridad {$prioridad}";
+        session()->setFlashdata('success', "¡Ticket #{$codigo} registrado exitosamente{$conPrioridad}!");
+        return redirect()->to('/tickets/mis-tickets');
     }
 
     public function crear()
@@ -127,6 +139,19 @@ class Tickets extends BaseController
         $data = $this->getSessionData();
         if (!$data) return redirect()->to('/auth');
         if (!$this->puedeCrearTickets($data)) return redirect()->to('/dashboard');
+
+        // Envío único: si el mismo formulario llega varias veces (doble clic, varios Enter, F5),
+        // solo el primer envío crea el ticket; los demás responden con ese mismo ticket.
+        $token = (string)$this->request->getPost('token_envio');
+        if (!preg_match('/^[0-9a-f]{32}$/', $token)) {
+            session()->setFlashdata('error', 'El formulario expiró. Vuelve a completarlo y envíalo nuevamente.');
+            return redirect()->to('/tickets/nuevo');
+        }
+        $yaCreado = $this->ticketModel->buscarPorTokenEnvio($token, $data['id_usuario']);
+        if ($yaCreado !== null) {
+            log_message('notice', "Envío repetido del formulario ignorado: ticket #{$yaCreado['codigo_ticket']} (usuario {$data['id_usuario']}).");
+            return $this->redirigirTicketRegistrado($data, $yaCreado['codigo_ticket'], $yaCreado['prioridad_nombre']);
+        }
 
         $idArea    = (int)$this->request->getPost('id_area_afectada');
         $asunto    = trim((string)$this->request->getPost('asunto'));
@@ -139,6 +164,12 @@ class Tickets extends BaseController
             return redirect()->back()->withInput();
         }
 
+        // El asunto se guarda en un campo de 200 caracteres: sin este control, la base lo cortaría sin avisar
+        if (mb_strlen($asunto) > 200) {
+            session()->setFlashdata('error', 'El asunto puede tener como máximo 200 caracteres. Los detalles van en la descripción.');
+            return redirect()->back()->withInput();
+        }
+
         // 1. Calcular prioridad y SLA
         $prioInfo = $this->ticketModel->calcularPrioridad($impacto, $urgencia, $idArea);
         $idPrioridad = $prioInfo['id_prioridad'];
@@ -148,23 +179,34 @@ class Tickets extends BaseController
         $fechaVencimientoSla = date('Y-m-d H:i:s', $ahora + $minutosSla * 60);
 
         // 2-3. Insertar ticket con su código correlativo (TK-xxxx), seguro ante creaciones simultáneas
-        $creado = $this->ticketModel->crearConCodigo([
-            'id_solicitante'        => $data['id_usuario'],
-            'id_tecnico_asignado'   => null,
-            'id_area_afectada'      => $idArea,
-            'nivel_impacto'         => $impacto,
-            'nivel_urgencia'        => $urgencia,
-            'id_prioridad'          => $idPrioridad,
-            'id_estado'             => 1, // Pendiente
-            'asunto'                => $asunto,
-            'descripcion'           => $desc,
-            'solucion_aplicada'     => null,
-            'fecha_creacion'        => $now,
-            'fecha_asignacion'      => null,
-            'fecha_resolucion'      => null,
-            'fecha_cierre'          => null,
-            'fecha_vencimiento_sla' => $fechaVencimientoSla,
-        ]);
+        try {
+            $creado = $this->ticketModel->crearConCodigo([
+                'token_envio'           => $token,
+                'id_solicitante'        => $data['id_usuario'],
+                'id_tecnico_asignado'   => null,
+                'id_area_afectada'      => $idArea,
+                'nivel_impacto'         => $impacto,
+                'nivel_urgencia'        => $urgencia,
+                'id_prioridad'          => $idPrioridad,
+                'id_estado'             => 1, // Pendiente
+                'asunto'                => $asunto,
+                'descripcion'           => $desc,
+                'solucion_aplicada'     => null,
+                'fecha_creacion'        => $now,
+                'fecha_asignacion'      => null,
+                'fecha_resolucion'      => null,
+                'fecha_cierre'          => null,
+                'fecha_vencimiento_sla' => $fechaVencimientoSla,
+            ]);
+        } catch (\Throwable $e) {
+            // dos envíos del mismo formulario llegaron a la vez: el índice único de token_envio
+            // solo deja guardar uno, y el otro responde con el ticket ya creado.
+            $yaCreado = $this->ticketModel->buscarPorTokenEnvio($token, $data['id_usuario']);
+            if ($yaCreado === null) {
+                throw $e; // no era un envío repetido: error real
+            }
+            return $this->redirigirTicketRegistrado($data, $yaCreado['codigo_ticket'], $yaCreado['prioridad_nombre']);
+        }
         $idTicket = $creado['id'];
         $codigo   = $creado['codigo'];
 
@@ -183,10 +225,7 @@ class Tickets extends BaseController
             $idTicket
         );
 
-        // El solicitante no ve la prioridad; el administrador sí
-        $conPrioridad = $data['rol'] === 'Solicitante' ? '' : " con prioridad {$prioInfo['nombre']}";
-        session()->setFlashdata('success', "¡Ticket #{$codigo} registrado exitosamente{$conPrioridad}!");
-        return redirect()->to('/tickets/mis-tickets');
+        return $this->redirigirTicketRegistrado($data, $codigo, $prioInfo['nombre']);
     }
 
     public function todos()

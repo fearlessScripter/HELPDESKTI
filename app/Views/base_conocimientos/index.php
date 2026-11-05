@@ -166,6 +166,8 @@ $this->setVar('topbar', ['pageTitle' => 'Documentación Técnica']);
         <div class="modal-content">
             <form action="<?= base_url('/base-conocimientos/crear') ?>" method="post">
                 <?= csrf_field() ?>
+                <!-- Identifica este formulario: aunque se envíe varias veces, crea una sola solución -->
+                <input type="hidden" name="token_envio" value="<?= esc($tokenEnvio ?? '') ?>">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Documentar Nueva Solución Técnica</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -173,7 +175,7 @@ $this->setVar('topbar', ['pageTitle' => 'Documentación Técnica']);
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Título del Problema / Falla <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="titulo" placeholder="Ej: Configuración de VPN en Windows 11 o Restablecimiento de Token" required>
+                        <input type="text" class="form-control" name="titulo" placeholder="Ej: Configuración de VPN en Windows 11 o Restablecimiento de Token" required maxlength="200">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Procedimiento de Solución <span class="text-danger">*</span></label>
@@ -204,7 +206,7 @@ $this->setVar('topbar', ['pageTitle' => 'Documentación Técnica']);
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold" for="editTitulo">Título del Problema / Falla <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="titulo" id="editTitulo" required>
+                        <input type="text" class="form-control" name="titulo" id="editTitulo" required maxlength="200">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold" for="editContenido">Procedimiento de Solución <span class="text-danger">*</span></label>

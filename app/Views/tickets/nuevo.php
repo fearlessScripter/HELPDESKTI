@@ -23,6 +23,8 @@ $this->setVar('topbar', ['pageTitle' => 'Nuevo Ticket']);
                         <div class="card-body p-4">
                             <form action="<?= base_url('/tickets/crear') ?>" method="post">
                                 <?= csrf_field() ?>
+                                <!-- identifica este formulario: aunque se envíe varias veces, crea un solo ticket -->
+                                <input type="hidden" name="token_envio" value="<?= esc($tokenEnvio ?? '') ?>">
                                 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold" for="id_area_afectada">¿Con qué servicio o sistema tienes el problema? <span class="text-danger">*</span></label>
@@ -42,7 +44,8 @@ $this->setVar('topbar', ['pageTitle' => 'Nuevo Ticket']);
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold" for="asunto">Asunto breve <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="asunto" name="asunto" placeholder="Ej: No me enciende el computador o no tengo internet" required>
+                                    <input type="text" class="form-control" id="asunto" name="asunto" placeholder="Ej: No me enciende el computador o no tengo internet" required maxlength="200" aria-describedby="ayudaAsunto">
+                                    <div class="form-text" id="ayudaAsunto">Máximo 200 caracteres. Los detalles van en la descripción.</div>
                                 </div>
 
                                 <!--
